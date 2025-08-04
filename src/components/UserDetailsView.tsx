@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
 import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, TooltipItem } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -440,7 +440,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'bar'>) {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             return `${label}: ${value.toLocaleString()} interactions`;
@@ -478,7 +478,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'bar'>) {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             return `${label}: ${value.toLocaleString()} generations`;
@@ -518,7 +518,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       },
       tooltip: {
         callbacks: {
-          label: function(context: any) {
+          label: function(context: TooltipItem<'bar'>) {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             return `${label}: ${value.toLocaleString()} interactions`;

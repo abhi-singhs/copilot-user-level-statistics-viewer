@@ -73,7 +73,6 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
   const chatUsers = users.filter(user => user.used_chat).length;
   const agentUsers = users.filter(user => user.used_agent).length;
   const completionOnlyUsers = users.filter(user => !user.used_chat && !user.used_agent).length;
-  const avgDaysActive = users.length > 0 ? (users.reduce((sum, user) => sum + user.days_active, 0) / users.length).toFixed(1) : '0';
 
   return (
     <div className="space-y-6">
