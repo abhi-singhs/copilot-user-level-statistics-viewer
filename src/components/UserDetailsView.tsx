@@ -19,6 +19,7 @@ interface UserDetailsViewProps {
 export default function UserDetailsView({ userMetrics, userLogin, userId, onBack }: UserDetailsViewProps) {
   // State for collapsible sections
   const [isLanguageTableExpanded, setIsLanguageTableExpanded] = useState(false);
+  const [isModelTableExpanded, setIsModelTableExpanded] = useState(false);
 
   // Calculate aggregated stats for this user
   const totalInteractions = userMetrics.reduce((sum, metric) => sum + metric.user_initiated_interaction_count, 0);
@@ -359,6 +360,73 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
 
   const languageBarChartData = createLanguageBarChartData();
 
+  // Prepare bar chart data for model activity by day
+  const createModelBarChartData = () => {
+    // Get all unique models across all days
+    const allModels = Array.from(
+      new Set(
+        userMetrics.flatMap(metric => 
+          metric.totals_by_model_feature.map(item => item.model)
+        )
+      )
+    ).filter(model => model && model !== '' && model !== 'unknown').sort();
+
+    // Get all days and sort them
+    const allDays = userMetrics.map(metric => metric.day).sort();
+
+    // Define colors for each model
+    const modelColors: Record<string, string> = {
+      'gpt-4': '#10A37F',
+      'gpt-4o': '#0066CC',
+      'gpt-4-turbo': '#0052A3',
+      'gpt-3.5': '#74AA9C',
+      'gpt-3.5-turbo': '#5D8A7A',
+      'claude-3': '#FF6B35',
+      'claude-3-opus': '#E55934',
+      'claude-3-sonnet': '#CC4125',
+      'claude-3-haiku': '#B8301F',
+      'claude-2': '#A02318',
+      'gemini': '#4285F4',
+      'gemini-pro': '#1A73E8',
+      'codegen': '#8B5CF6',
+      'codellama': '#F59E0B',
+      'starcoder': '#EC4899',
+      'copilot': '#24292e',
+      'github-copilot': '#24292e',
+    };
+
+    // Create datasets for each model
+    const datasets = allModels.map((model, index) => {
+      const data = allDays.map(day => {
+        const dayMetric = userMetrics.find(m => m.day === day);
+        const modelData = dayMetric?.totals_by_model_feature
+          .filter(item => item.model === model)
+          .reduce((sum, item) => sum + item.user_initiated_interaction_count, 0) || 0;
+        return modelData;
+      });
+
+      const fallbackColors = [
+        '#6366F1', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', 
+        '#10B981', '#F97316', '#06B6D4', '#84CC16', '#EC4899'
+      ];
+
+      return {
+        label: model.charAt(0).toUpperCase() + model.slice(1),
+        data: data,
+        backgroundColor: modelColors[model.toLowerCase()] || fallbackColors[index % fallbackColors.length],
+        borderColor: modelColors[model.toLowerCase()] || fallbackColors[index % fallbackColors.length],
+        borderWidth: 1,
+      };
+    }).filter(dataset => dataset.data.some(value => value > 0)); // Only include models with data
+
+    return {
+      labels: allDays.map(day => new Date(day).toLocaleDateString()),
+      datasets: datasets,
+    };
+  };
+
+  const modelBarChartData = createModelBarChartData();
+
   const barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -430,6 +498,46 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         title: {
           display: true,
           text: 'Generations'
+        },
+        beginAtZero: true,
+        stacked: true,
+      }
+    }
+  };
+
+  const modelBarChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y || 0;
+            return `${label}: ${value.toLocaleString()} interactions`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Date'
+        },
+        stacked: true,
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Interactions'
         },
         beginAtZero: true,
         stacked: true,
@@ -749,67 +857,104 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       {/* Totals by Model and Feature - Grouped by Model */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by Model and Feature</h3>
-        <div className="overflow-x-auto">
-          {(() => {
-            // Group model feature data by model
-            const groupedByModel = modelFeatureAggregates.reduce((acc, item) => {
-              if (!acc[item.model]) {
-                acc[item.model] = [];
-              }
-              acc[item.model].push(item);
-              return acc;
-            }, {} as Record<string, typeof modelFeatureAggregates>);
-
-            // Sort models by total interactions (descending), but put "unknown" at the end
-            const sortedModels = Object.keys(groupedByModel).sort((a, b) => {
-              if (a === 'unknown') return 1;
-              if (b === 'unknown') return -1;
-              
-              const totalInteractionsA = groupedByModel[a].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
-              const totalInteractionsB = groupedByModel[b].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
-              
-              return totalInteractionsB - totalInteractionsA; // Descending order
-            });
-
-            return (
-              <div className="space-y-6">
-                {sortedModels.map((model) => (
-                  <div key={model} className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="text-md font-semibold text-gray-800 mb-3 capitalize">
-                      {model === 'unknown' ? 'Unknown Model' : model}
-                      <span className="text-sm font-normal text-gray-600 ml-2">
-                        ({groupedByModel[model].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0).toLocaleString()} total interactions)
-                      </span>
-                    </h4>
-                    <table className="w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {groupedByModel[model].map((item, index) => (
-                          <tr key={index}>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
-                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
+        
+        {/* Bar Chart */}
+        {modelBarChartData.datasets.length > 0 && (
+          <div className="mb-6">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-4 text-center">Daily Model Interactions</h4>
+              <div className="h-64">
+                <Bar data={modelBarChartData} options={modelBarChartOptions} />
               </div>
-            );
-          })()}
+            </div>
+          </div>
+        )}
+
+        {/* Collapsible Table Section */}
+        <div className="border-t border-gray-200 pt-4">
+          <button
+            onClick={() => setIsModelTableExpanded(!isModelTableExpanded)}
+            className="flex items-center justify-between w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-700">
+              Detailed Model and Feature Breakdown
+            </span>
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
+                isModelTableExpanded ? 'rotate-180' : ''
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {isModelTableExpanded && (
+            <div className="mt-4 overflow-x-auto">
+              {(() => {
+                // Group model feature data by model
+                const groupedByModel = modelFeatureAggregates.reduce((acc, item) => {
+                  if (!acc[item.model]) {
+                    acc[item.model] = [];
+                  }
+                  acc[item.model].push(item);
+                  return acc;
+                }, {} as Record<string, typeof modelFeatureAggregates>);
+
+                // Sort models by total interactions (descending), but put "unknown" at the end
+                const sortedModels = Object.keys(groupedByModel).sort((a, b) => {
+                  if (a === 'unknown') return 1;
+                  if (b === 'unknown') return -1;
+                  
+                  const totalInteractionsA = groupedByModel[a].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
+                  const totalInteractionsB = groupedByModel[b].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
+                  
+                  return totalInteractionsB - totalInteractionsA; // Descending order
+                });
+
+                return (
+                  <div className="space-y-6">
+                    {sortedModels.map((model) => (
+                      <div key={model} className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="text-md font-semibold text-gray-800 mb-3 capitalize">
+                          {model === 'unknown' ? 'Unknown Model' : model}
+                          <span className="text-sm font-normal text-gray-600 ml-2">
+                            ({groupedByModel[model].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0).toLocaleString()} total interactions)
+                          </span>
+                        </h4>
+                        <table className="w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {groupedByModel[model].map((item, index) => (
+                              <tr key={index}>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </div>
       </div>
     </div>
