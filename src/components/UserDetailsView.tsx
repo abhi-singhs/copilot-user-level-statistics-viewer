@@ -4,10 +4,10 @@ import React from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
 import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 interface UserDetailsViewProps {
   userMetrics: CopilotMetrics[];
@@ -198,6 +198,112 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     }
   };
 
+  // Prepare bar chart data for IDE activity by day
+  const createIDEBarChartData = () => {
+    // Get all unique IDEs across all days
+    const allIDEs = Array.from(
+      new Set(
+        userMetrics.flatMap(metric => 
+          metric.totals_by_ide.map(ide => ide.ide)
+        )
+      )
+    ).sort();
+
+    // Get all days and sort them
+    const allDays = userMetrics.map(metric => metric.day).sort();
+
+    // Define colors for each IDE
+    const ideColors: Record<string, string> = {
+      'vscode': '#007ACC',
+      'visual_studio': '#5C2D91',
+      'jetbrains': '#FE315D',
+      'vim': '#019733',
+      'neovim': '#57A143',
+      'emacs': '#7F5AB6',
+      'atom': '#66595C',
+      'sublime_text': '#FF9800',
+      'xcode': '#1575F9',
+      'android_studio': '#3DDC84',
+      'intellij': '#FE315D',
+      'pycharm': '#21D789',
+      'webstorm': '#00CDD7',
+      'phpstorm': '#B345F1',
+      'rubymine': '#FE315D',
+      'clion': '#21D789',
+      'goland': '#00ADD8',
+      'datagrip': '#9775FA',
+      'rider': '#C21456',
+      'appcode': '#1575F9',
+    };
+
+    // Create datasets for each IDE
+    const datasets = allIDEs.map((ide, index) => {
+      const data = allDays.map(day => {
+        const dayMetric = userMetrics.find(m => m.day === day);
+        const ideData = dayMetric?.totals_by_ide.find(i => i.ide === ide);
+        return ideData?.user_initiated_interaction_count || 0;
+      });
+
+      const fallbackColors = [
+        '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
+        '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#14B8A6'
+      ];
+
+      return {
+        label: formatIDEName(ide),
+        data: data,
+        backgroundColor: ideColors[ide] || fallbackColors[index % fallbackColors.length],
+        borderColor: ideColors[ide] || fallbackColors[index % fallbackColors.length],
+        borderWidth: 1,
+      };
+    }).filter(dataset => dataset.data.some(value => value > 0)); // Only include IDEs with data
+
+    return {
+      labels: allDays.map(day => new Date(day).toLocaleDateString()),
+      datasets: datasets,
+    };
+  };
+
+  const ideBarChartData = createIDEBarChartData();
+
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y || 0;
+            return `${label}: ${value.toLocaleString()} interactions`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Date'
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Interactions'
+        },
+        beginAtZero: true
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -328,6 +434,19 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       {/* Totals by IDE */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by IDE</h3>
+        
+        {/* Bar Chart */}
+        {ideBarChartData.datasets.length > 0 && (
+          <div className="mb-6">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-4 text-center">Daily IDE Interactions</h4>
+              <div className="h-64">
+                <Bar data={ideBarChartData} options={barChartOptions} />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
