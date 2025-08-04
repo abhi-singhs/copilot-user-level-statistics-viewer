@@ -392,67 +392,135 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         </div>
       </div>
 
-      {/* Totals by Language and Feature */}
+      {/* Totals by Language and Feature - Grouped by Language */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by Language and Feature</h3>
         <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {languageFeatureAggregates.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.language}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{translateFeature(item.feature)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {(() => {
+            // Group language feature data by language
+            const groupedByLanguage = languageFeatureAggregates.reduce((acc, item) => {
+              if (!acc[item.language]) {
+                acc[item.language] = [];
+              }
+              acc[item.language].push(item);
+              return acc;
+            }, {} as Record<string, typeof languageFeatureAggregates>);
+
+            // Sort languages by total generation activity (descending), but put "unknown" and empty strings at the end
+            const sortedLanguages = Object.keys(groupedByLanguage).sort((a, b) => {
+              if (a === 'unknown' || a === '') return 1;
+              if (b === 'unknown' || b === '') return -1;
+              
+              const totalGenerationA = groupedByLanguage[a].reduce((sum, item) => sum + item.code_generation_activity_count, 0);
+              const totalGenerationB = groupedByLanguage[b].reduce((sum, item) => sum + item.code_generation_activity_count, 0);
+              
+              return totalGenerationB - totalGenerationA; // Descending order
+            });
+
+            return (
+              <div className="space-y-6">
+                {sortedLanguages.map((language) => (
+                  <div key={language} className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-gray-800 mb-3 capitalize">
+                      {language === 'unknown' || language === '' ? 'Unknown Language' : language}
+                      <span className="text-sm font-normal text-gray-600 ml-2">
+                        ({groupedByLanguage[language].reduce((sum, item) => sum + item.code_generation_activity_count, 0).toLocaleString()} total generations)
+                      </span>
+                    </h4>
+                    <table className="w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {groupedByLanguage[language].map((item, index) => (
+                          <tr key={index}>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
 
-      {/* Totals by Model and Feature */}
+      {/* Totals by Model and Feature - Grouped by Model */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by Model and Feature</h3>
         <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {modelFeatureAggregates.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.model}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{translateFeature(item.feature)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {(() => {
+            // Group model feature data by model
+            const groupedByModel = modelFeatureAggregates.reduce((acc, item) => {
+              if (!acc[item.model]) {
+                acc[item.model] = [];
+              }
+              acc[item.model].push(item);
+              return acc;
+            }, {} as Record<string, typeof modelFeatureAggregates>);
+
+            // Sort models by total interactions (descending), but put "unknown" at the end
+            const sortedModels = Object.keys(groupedByModel).sort((a, b) => {
+              if (a === 'unknown') return 1;
+              if (b === 'unknown') return -1;
+              
+              const totalInteractionsA = groupedByModel[a].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
+              const totalInteractionsB = groupedByModel[b].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
+              
+              return totalInteractionsB - totalInteractionsA; // Descending order
+            });
+
+            return (
+              <div className="space-y-6">
+                {sortedModels.map((model) => (
+                  <div key={model} className="border border-gray-200 rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-gray-800 mb-3 capitalize">
+                      {model === 'unknown' ? 'Unknown Model' : model}
+                      <span className="text-sm font-normal text-gray-600 ml-2">
+                        ({groupedByModel[model].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0).toLocaleString()} total interactions)
+                      </span>
+                    </h4>
+                    <table className="w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {groupedByModel[model].map((item, index) => (
+                          <tr key={index}>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
+                            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>
