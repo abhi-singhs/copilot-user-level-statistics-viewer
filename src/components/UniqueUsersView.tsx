@@ -72,6 +72,7 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
   const totalAcceptance = users.reduce((sum, user) => sum + user.total_code_acceptance_activities, 0);
   const chatUsers = users.filter(user => user.used_chat).length;
   const agentUsers = users.filter(user => user.used_agent).length;
+  const completionOnlyUsers = users.filter(user => !user.used_chat && !user.used_agent).length;
   const avgDaysActive = users.length > 0 ? (users.reduce((sum, user) => sum + user.days_active, 0) / users.length).toFixed(1) : '0';
 
   return (
@@ -92,7 +93,7 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="text-2xl font-bold text-blue-600">{users.length}</div>
           <div className="text-sm text-gray-600">Total Users</div>
@@ -116,6 +117,10 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="text-2xl font-bold text-indigo-600">{agentUsers}</div>
           <div className="text-sm text-gray-600">Agent Users</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-amber-600">{completionOnlyUsers}</div>
+          <div className="text-sm text-gray-600">Completion Only Users</div>
         </div>
       </div>
 

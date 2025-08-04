@@ -62,6 +62,9 @@ export interface CopilotMetrics {
 
 export interface MetricsStats {
   uniqueUsers: number;
+  chatUsers: number;
+  agentUsers: number;
+  completionOnlyUsers: number;
   reportStartDay: string;
   reportEndDay: string;
   totalRecords: number;

@@ -20,20 +20,45 @@ export function calculateStats(metrics: CopilotMetrics[]): MetricsStats {
   if (metrics.length === 0) {
     return {
       uniqueUsers: 0,
+      chatUsers: 0,
+      agentUsers: 0,
+      completionOnlyUsers: 0,
       reportStartDay: '',
       reportEndDay: '',
       totalRecords: 0,
     };
   }
 
-  // Get unique users by user_id
-  const uniqueUserIds = new Set(metrics.map(m => m.user_id));
+  // Get unique users by user_id and their usage patterns
+  const userUsageMap = new Map<number, { used_chat: boolean; used_agent: boolean }>();
+  
+  for (const metric of metrics) {
+    const existingUsage = userUsageMap.get(metric.user_id) || { used_chat: false, used_agent: false };
+    userUsageMap.set(metric.user_id, {
+      used_chat: existingUsage.used_chat || metric.used_chat,
+      used_agent: existingUsage.used_agent || metric.used_agent,
+    });
+  }
+
+  // Count different user types
+  let chatUsers = 0;
+  let agentUsers = 0;
+  let completionOnlyUsers = 0;
+
+  for (const usage of userUsageMap.values()) {
+    if (usage.used_chat) chatUsers++;
+    if (usage.used_agent) agentUsers++;
+    if (!usage.used_chat && !usage.used_agent) completionOnlyUsers++;
+  }
   
   // Get report period from first record (assuming all records have the same period)
   const firstRecord = metrics[0];
   
   return {
-    uniqueUsers: uniqueUserIds.size,
+    uniqueUsers: userUsageMap.size,
+    chatUsers,
+    agentUsers,
+    completionOnlyUsers,
     reportStartDay: firstRecord.report_start_day,
     reportEndDay: firstRecord.report_end_day,
     totalRecords: metrics.length,

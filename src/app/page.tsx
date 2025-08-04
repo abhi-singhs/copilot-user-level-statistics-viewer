@@ -186,6 +186,50 @@ export default function Home() {
                 </div>
               </button>
 
+              <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-emerald-600">Chat Users</p>
+                    <p className="text-2xl font-bold text-emerald-900">{stats.chatUsers.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-violet-600">Agent Users</p>
+                    <p className="text-2xl font-bold text-violet-900">{stats.agentUsers.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-amber-600">Completion Only Users</p>
+                    <p className="text-2xl font-bold text-amber-900">{stats.completionOnlyUsers.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
