@@ -1,3 +1,5 @@
+'use client';
+
 import { UserSummary, CopilotMetrics } from '../types/metrics';
 import { useState } from 'react';
 

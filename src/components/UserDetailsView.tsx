@@ -1,5 +1,13 @@
+'use client';
+
+import React from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
+import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Pie } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface UserDetailsViewProps {
   userMetrics: CopilotMetrics[];
@@ -94,6 +102,102 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       return acc;
     }, [] as typeof userMetrics[0]['totals_by_model_feature']);
 
+  // Prepare chart data
+  // 1. IDEs chart data (based on interactions)
+  const ideChartData = {
+    labels: ideAggregates.map(ide => formatIDEName(ide.ide)),
+    datasets: [{
+      data: ideAggregates.map(ide => ide.user_initiated_interaction_count),
+      backgroundColor: [
+        '#3B82F6', // blue
+        '#10B981', // green
+        '#F59E0B', // yellow
+        '#EF4444', // red
+        '#8B5CF6', // purple
+        '#F97316', // orange
+      ],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  };
+
+  // 2. Programming Languages chart data (based on generations)
+  const languageGenerations = languageFeatureAggregates.reduce((acc, item) => {
+    if (item.language && item.language !== '' && item.language !== 'unknown') {
+      acc[item.language] = (acc[item.language] || 0) + item.code_generation_activity_count;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const languageChartData = {
+    labels: Object.keys(languageGenerations),
+    datasets: [{
+      data: Object.values(languageGenerations),
+      backgroundColor: [
+        '#06B6D4', // cyan
+        '#84CC16', // lime
+        '#F59E0B', // amber
+        '#EC4899', // pink
+        '#8B5CF6', // violet
+        '#10B981', // emerald
+        '#F97316', // orange
+        '#EF4444', // red
+      ],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  };
+
+  // 3. Models chart data (based on interactions regardless of feature)
+  const modelInteractions = modelFeatureAggregates.reduce((acc, item) => {
+    if (item.model && item.model !== '') {
+      acc[item.model] = (acc[item.model] || 0) + item.user_initiated_interaction_count;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const modelChartData = {
+    labels: Object.keys(modelInteractions),
+    datasets: [{
+      data: Object.values(modelInteractions),
+      backgroundColor: [
+        '#6366F1', // indigo
+        '#14B8A6', // teal
+        '#F59E0B', // amber
+        '#EF4444', // red
+        '#8B5CF6', // purple
+        '#10B981', // green
+      ],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          padding: 15,
+          usePointStyle: true,
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: { label: string; parsed: number; dataset: { data: number[] } }) {
+            const label = context.label || '';
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+            return `${label}: ${value} (${percentage}%)`;
+          }
+        }
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -140,24 +244,62 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         </div>
       </div>
 
-      {/* Features Used */}
+      {/* Summary */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Features Used</h3>
-        <div className="flex flex-wrap gap-2">
-          {usedChat && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              Chat
-            </span>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">Summary</h3>
+        
+        {/* Features Used */}
+        <div className="mb-6">
+          <h4 className="text-md font-medium text-gray-800 mb-3">Features Used</h4>
+          <div className="flex flex-wrap gap-2">
+            {usedChat && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                Chat
+              </span>
+            )}
+            {usedAgent && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                Agent
+              </span>
+            )}
+            {!usedChat && !usedAgent && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                Completion Only
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* IDEs Chart */}
+          {ideAggregates.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-3 text-center">IDEs (Interactions)</h4>
+              <div className="h-48">
+                <Pie data={ideChartData} options={chartOptions} />
+              </div>
+            </div>
           )}
-          {usedAgent && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-              Agent
-            </span>
+
+          {/* Programming Languages Chart */}
+          {Object.keys(languageGenerations).length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-3 text-center">Languages (Generations)</h4>
+              <div className="h-48">
+                <Pie data={languageChartData} options={chartOptions} />
+              </div>
+            </div>
           )}
-          {!usedChat && !usedAgent && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-              Completion Only
-            </span>
+
+          {/* Models Chart */}
+          {Object.keys(modelInteractions).length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-800 mb-3 text-center">Models (Interactions)</h4>
+              <div className="h-48">
+                <Pie data={modelChartData} options={chartOptions} />
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -201,7 +343,12 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
             <tbody className="bg-white divide-y divide-gray-200">
               {ideAggregates.map((ide) => (
                 <tr key={ide.ide}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ide.ide}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <div className="flex items-center gap-2">
+                      {React.createElement(getIDEIcon(ide.ide))}
+                      <span>{formatIDEName(ide.ide)}</span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.user_initiated_interaction_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_generation_activity_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_acceptance_activity_count.toLocaleString()}</td>
