@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
-import { parseMetricsFile, calculateStats, calculateUserSummaries, calculateDailyEngagement, calculateLanguageStats, DailyEngagementData, LanguageStats } from '../utils/metricsParser';
+import { CopilotMetrics, MetricsStats } from '../types/metrics';
+import { parseMetricsFile, calculateStats, calculateUserSummaries, calculateDailyEngagement, calculateLanguageStats } from '../utils/metricsParser';
 import { filterMetricsByDateRange, getFilteredDateRange } from '../utils/dateFilters';
 import UniqueUsersView from '../components/UniqueUsersView';
 import UserDetailsView from '../components/UserDetailsView';
