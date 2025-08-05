@@ -2,13 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import { CopilotMetrics, MetricsStats } from '../types/metrics';
-import { parseMetricsFile, calculateStats, calculateUserSummaries, calculateDailyEngagement, calculateLanguageStats, filterUnknownLanguages } from '../utils/metricsParser';
+import { parseMetricsFile, calculateStats, calculateUserSummaries, calculateDailyEngagement, calculateDailyChatUsers, calculateLanguageStats, filterUnknownLanguages } from '../utils/metricsParser';
 import { filterMetricsByDateRange, getFilteredDateRange } from '../utils/dateFilters';
 import UniqueUsersView from '../components/UniqueUsersView';
 import UserDetailsView from '../components/UserDetailsView';
 import LanguagesView from '../components/LanguagesView';
 import IDEView from '../components/IDEView';
 import EngagementChart from '../components/EngagementChart';
+import ChatUsersChart from '../components/ChatUsersChart';
 import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 
 type ViewMode = 'overview' | 'users' | 'userDetails' | 'languages' | 'ides';
@@ -35,6 +36,7 @@ export default function Home() {
         stats: null,
         userSummaries: [],
         engagementData: [],
+        chatUsersData: [],
         languageStats: []
       };
     }
@@ -47,6 +49,7 @@ export default function Home() {
     const filteredStats = calculateStats(filteredMetrics);
     const filteredUserSummaries = calculateUserSummaries(filteredMetrics);
     const filteredEngagementData = calculateDailyEngagement(filteredMetrics);
+    const filteredChatUsersData = calculateDailyChatUsers(filteredMetrics);
     const filteredLanguageStats = calculateLanguageStats(filteredMetrics);
 
     // Update the date range in stats based on filter
@@ -62,11 +65,12 @@ export default function Home() {
       stats: updatedStats,
       userSummaries: filteredUserSummaries,
       engagementData: filteredEngagementData,
+      chatUsersData: filteredChatUsersData,
       languageStats: filteredLanguageStats
     };
   }, [rawMetrics, originalStats, dateRangeFilter, removeUnknownLanguages]);
 
-  const { metrics, stats, userSummaries, engagementData, languageStats } = filteredData;
+  const { metrics, stats, userSummaries, engagementData, chatUsersData, languageStats } = filteredData;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -395,6 +399,11 @@ export default function Home() {
             {/* Daily Engagement Chart */}
             <div className="mt-8">
               <EngagementChart data={engagementData} />
+            </div>
+
+            {/* Daily Chat Users Trends Chart */}
+            <div className="mt-8">
+              <ChatUsersChart data={chatUsersData} />
             </div>
 
             <div className="mt-8 p-4 bg-gray-50 rounded-lg">

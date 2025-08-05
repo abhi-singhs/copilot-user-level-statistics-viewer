@@ -232,6 +232,67 @@ export interface LanguageStats {
   acceptedLoc: number;
 }
 
+export interface DailyChatUsersData {
+  date: string;
+  askModeUsers: number;
+  agentModeUsers: number;
+  editModeUsers: number;
+}
+
+export function calculateDailyChatUsers(metrics: CopilotMetrics[]): DailyChatUsersData[] {
+  if (metrics.length === 0) return [];
+
+  // Group metrics by day and track users by chat mode
+  const dailyMetrics = new Map<string, {
+    askModeUsers: Set<number>;
+    agentModeUsers: Set<number>;
+    editModeUsers: Set<number>;
+  }>();
+  
+  for (const metric of metrics) {
+    const date = metric.day;
+    if (!dailyMetrics.has(date)) {
+      dailyMetrics.set(date, {
+        askModeUsers: new Set(),
+        agentModeUsers: new Set(),
+        editModeUsers: new Set()
+      });
+    }
+    
+    const dayData = dailyMetrics.get(date)!;
+    
+    // Check features for this user on this day
+    for (const feature of metric.totals_by_feature) {
+      if (feature.user_initiated_interaction_count > 0) {
+        switch (feature.feature) {
+          case 'chat_panel_ask_mode':
+            dayData.askModeUsers.add(metric.user_id);
+            break;
+          case 'chat_panel_agent_mode':
+            dayData.agentModeUsers.add(metric.user_id);
+            break;
+          case 'chat_panel_edit_mode':
+          case 'chat_inline':
+            dayData.editModeUsers.add(metric.user_id);
+            break;
+        }
+      }
+    }
+  }
+
+  // Convert to array and sort by date
+  const chatUsersData: DailyChatUsersData[] = Array.from(dailyMetrics.entries())
+    .map(([date, data]) => ({
+      date,
+      askModeUsers: data.askModeUsers.size,
+      agentModeUsers: data.agentModeUsers.size,
+      editModeUsers: data.editModeUsers.size
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  return chatUsersData;
+}
+
 export function calculateLanguageStats(metrics: CopilotMetrics[]): LanguageStats[] {
   const languageMap = new Map<string, {
     totalGenerations: number;
