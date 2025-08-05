@@ -1,19 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 import { parseMetricsFile, calculateStats, calculateUserSummaries, calculateDailyEngagement, DailyEngagementData } from '../utils/metricsParser';
+import { filterMetricsByDateRange, getFilteredDateRange } from '../utils/dateFilters';
 import UniqueUsersView from '../components/UniqueUsersView';
 import UserDetailsView from '../components/UserDetailsView';
 import EngagementChart from '../components/EngagementChart';
+import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 
 type ViewMode = 'overview' | 'users' | 'userDetails';
 
 export default function Home() {
-  const [metrics, setMetrics] = useState<CopilotMetrics[]>([]);
-  const [stats, setStats] = useState<MetricsStats | null>(null);
-  const [userSummaries, setUserSummaries] = useState<UserSummary[]>([]);
-  const [engagementData, setEngagementData] = useState<DailyEngagementData[]>([]);
+  const [rawMetrics, setRawMetrics] = useState<CopilotMetrics[]>([]);
+  const [originalStats, setOriginalStats] = useState<MetricsStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<ViewMode>('overview');
@@ -22,6 +22,41 @@ export default function Home() {
     id: number;
     metrics: CopilotMetrics[];
   } | null>(null);
+  const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>('all');
+
+  // Calculate filtered data based on date range
+  const filteredData = useMemo(() => {
+    if (!rawMetrics.length || !originalStats) {
+      return {
+        metrics: [],
+        stats: null,
+        userSummaries: [],
+        engagementData: []
+      };
+    }
+
+    const filteredMetrics = filterMetricsByDateRange(rawMetrics, dateRangeFilter, originalStats.reportEndDay);
+    const filteredStats = calculateStats(filteredMetrics);
+    const filteredUserSummaries = calculateUserSummaries(filteredMetrics);
+    const filteredEngagementData = calculateDailyEngagement(filteredMetrics);
+
+    // Update the date range in stats based on filter
+    const { startDay, endDay } = getFilteredDateRange(dateRangeFilter, originalStats.reportStartDay, originalStats.reportEndDay);
+    const updatedStats = {
+      ...filteredStats,
+      reportStartDay: startDay,
+      reportEndDay: endDay
+    };
+
+    return {
+      metrics: filteredMetrics,
+      stats: updatedStats,
+      userSummaries: filteredUserSummaries,
+      engagementData: filteredEngagementData
+    };
+  }, [rawMetrics, originalStats, dateRangeFilter]);
+
+  const { metrics, stats, userSummaries, engagementData } = filteredData;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -34,13 +69,9 @@ export default function Home() {
       const fileContent = await file.text();
       const parsedMetrics = parseMetricsFile(fileContent);
       const calculatedStats = calculateStats(parsedMetrics);
-      const userSummaries = calculateUserSummaries(parsedMetrics);
-      const dailyEngagement = calculateDailyEngagement(parsedMetrics);
       
-      setMetrics(parsedMetrics);
-      setStats(calculatedStats);
-      setUserSummaries(userSummaries);
-      setEngagementData(dailyEngagement);
+      setRawMetrics(parsedMetrics);
+      setOriginalStats(calculatedStats);
     } catch (err) {
       setError(`Failed to parse file: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
@@ -49,13 +80,16 @@ export default function Home() {
   };
 
   const resetData = () => {
-    setStats(null);
-    setMetrics([]);
-    setUserSummaries([]);
-    setEngagementData([]);
+    setOriginalStats(null);
+    setRawMetrics([]);
     setError(null);
     setCurrentView('overview');
     setSelectedUser(null);
+    setDateRangeFilter('all');
+  };
+
+  const handleDateRangeChange = (filter: DateRangeFilter) => {
+    setDateRangeFilter(filter);
   };
 
   const handleUserClick = (userLogin: string, userId: number, userMetrics: CopilotMetrics[]) => {
@@ -77,7 +111,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             GitHub Copilot Usage Metrics Viewer
@@ -162,18 +196,20 @@ export default function Home() {
 
         {/* Statistics Section */}
         {stats && currentView === 'overview' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Metrics Overview</h2>
-              <button
-                onClick={resetData}
-                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-              >
-                Upload New File
-              </button>
-            </div>
+          <div className="flex gap-8">
+            {/* Main Content */}
+            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Metrics Overview</h2>
+                <button
+                  onClick={resetData}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                >
+                  Upload New File
+                </button>
+              </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
               <button
                 onClick={() => setCurrentView('users')}
                 className="bg-blue-50 rounded-lg p-4 border border-blue-200 hover:bg-blue-100 transition-colors text-left group"
@@ -234,7 +270,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mt-6">
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -306,6 +342,17 @@ export default function Home() {
                 Data covers the period from <strong>{formatDate(stats.reportStartDay)}</strong> to{' '}
                 <strong>{formatDate(stats.reportEndDay)}</strong>
               </p>
+            </div>
+            </div>
+
+            {/* Side Panel */}
+            <div className="w-72 flex-shrink-0">
+              <FilterPanel
+                onDateRangeChange={handleDateRangeChange}
+                currentFilter={dateRangeFilter}
+                reportStartDay={originalStats?.reportStartDay || ''}
+                reportEndDay={originalStats?.reportEndDay || ''}
+              />
             </div>
           </div>
         )}
