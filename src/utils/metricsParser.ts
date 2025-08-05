@@ -26,6 +26,9 @@ export function calculateStats(metrics: CopilotMetrics[]): MetricsStats {
       reportStartDay: '',
       reportEndDay: '',
       totalRecords: 0,
+      topLanguage: { name: 'N/A', engagements: 0 },
+      topIde: { name: 'N/A', entries: 0 },
+      topModel: { name: 'N/A', engagements: 0 },
     };
   }
 
@@ -50,6 +53,57 @@ export function calculateStats(metrics: CopilotMetrics[]): MetricsStats {
     if (usage.used_agent) agentUsers++;
     if (!usage.used_chat && !usage.used_agent) completionOnlyUsers++;
   }
+
+  // Calculate top language by total engagements
+  const languageEngagements = new Map<string, number>();
+  for (const metric of metrics) {
+    for (const langFeature of metric.totals_by_language_feature) {
+      const current = languageEngagements.get(langFeature.language) || 0;
+      languageEngagements.set(
+        langFeature.language, 
+        current + langFeature.code_generation_activity_count + langFeature.code_acceptance_activity_count
+      );
+    }
+  }
+  
+  const topLanguageEntry = Array.from(languageEngagements.entries())
+    .sort((a, b) => b[1] - a[1])[0];
+  const topLanguage = topLanguageEntry 
+    ? { name: topLanguageEntry[0], engagements: topLanguageEntry[1] }
+    : { name: 'N/A', engagements: 0 };
+
+  // Calculate top IDE by number of entries
+  const ideEntries = new Map<string, number>();
+  for (const metric of metrics) {
+    for (const ideTotal of metric.totals_by_ide) {
+      const current = ideEntries.get(ideTotal.ide) || 0;
+      ideEntries.set(ideTotal.ide, current + 1);
+    }
+  }
+  
+  const topIdeEntry = Array.from(ideEntries.entries())
+    .sort((a, b) => b[1] - a[1])[0];
+  const topIde = topIdeEntry 
+    ? { name: topIdeEntry[0], entries: topIdeEntry[1] }
+    : { name: 'N/A', entries: 0 };
+
+  // Calculate top model by total engagements
+  const modelEngagements = new Map<string, number>();
+  for (const metric of metrics) {
+    for (const modelFeature of metric.totals_by_model_feature) {
+      const current = modelEngagements.get(modelFeature.model) || 0;
+      modelEngagements.set(
+        modelFeature.model, 
+        current + modelFeature.code_generation_activity_count + modelFeature.code_acceptance_activity_count
+      );
+    }
+  }
+  
+  const topModelEntry = Array.from(modelEngagements.entries())
+    .sort((a, b) => b[1] - a[1])[0];
+  const topModel = topModelEntry 
+    ? { name: topModelEntry[0], engagements: topModelEntry[1] }
+    : { name: 'N/A', engagements: 0 };
   
   // Get report period from first record (assuming all records have the same period)
   const firstRecord = metrics[0];
@@ -62,6 +116,9 @@ export function calculateStats(metrics: CopilotMetrics[]): MetricsStats {
     reportStartDay: firstRecord.report_start_day,
     reportEndDay: firstRecord.report_end_day,
     totalRecords: metrics.length,
+    topLanguage,
+    topIde,
+    topModel,
   };
 }
 

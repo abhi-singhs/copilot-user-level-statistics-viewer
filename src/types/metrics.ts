@@ -68,6 +68,9 @@ export interface MetricsStats {
   reportStartDay: string;
   reportEndDay: string;
   totalRecords: number;
+  topLanguage: { name: string; engagements: number };
+  topIde: { name: string; entries: number };
+  topModel: { name: string; engagements: number };
 }
 
 export interface UserSummary {

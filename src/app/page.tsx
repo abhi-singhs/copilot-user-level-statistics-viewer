@@ -83,7 +83,7 @@ export default function Home() {
             GitHub Copilot Usage Metrics Viewer
           </h1>
           <p className="text-gray-600">
-            Upload your GitHub Copilot metrics file to view usage statistics
+            Upload your GitHub Copilot User Level metrics json-file to view usage statistics
           </p>
         </div>
 
@@ -253,12 +253,13 @@ export default function Home() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-purple-600">Report Start</p>
-                    <p className="text-sm font-bold text-purple-900">{formatDate(stats.reportStartDay)}</p>
+                    <p className="text-sm font-medium text-purple-600">Top Language</p>
+                    <p className="text-lg font-bold text-purple-900">{stats.topLanguage?.name || 'N/A'}</p>
+                    <p className="text-xs text-purple-700">{stats.topLanguage?.engagements?.toLocaleString() || '0'} engagements</p>
                   </div>
                 </div>
               </div>
@@ -267,12 +268,28 @@ export default function Home() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-orange-600">Report End</p>
-                    <p className="text-sm font-bold text-orange-900">{formatDate(stats.reportEndDay)}</p>
+                    <p className="text-sm font-medium text-orange-600">Top IDE</p>
+                    <p className="text-lg font-bold text-orange-900">{stats.topIde?.name || 'N/A'}</p>
+                    <p className="text-xs text-orange-700">{stats.topIde?.entries?.toLocaleString() || '0'} entries</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm font-medium text-indigo-600">Top Model</p>
+                    <p className="text-lg font-bold text-indigo-900">{stats.topModel?.name || 'N/A'}</p>
+                    <p className="text-xs text-indigo-700">{stats.topModel?.engagements?.toLocaleString() || '0'} engagements</p>
                   </div>
                 </div>
               </div>
