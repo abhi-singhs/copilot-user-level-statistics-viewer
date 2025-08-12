@@ -30,9 +30,10 @@ import FeatureAdoptionChart from '../components/FeatureAdoptionChart';
 import PRUCostAnalysisChart from '../components/PRUCostAnalysisChart';
 import AgentModeHeatmapChart from '../components/AgentModeHeatmapChart';
 import ModelFeatureDistributionChart from '../components/ModelFeatureDistributionChart';
+import DataQualityAnalysisView from '../components/DataQualityAnalysisView';
 import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 
-type ViewMode = 'overview' | 'users' | 'userDetails' | 'languages' | 'ides';
+type ViewMode = 'overview' | 'users' | 'userDetails' | 'languages' | 'ides' | 'dataQuality';
 
 export default function Home() {
   const [rawMetrics, setRawMetrics] = useState<CopilotMetrics[]>([]);
@@ -246,6 +247,14 @@ export default function Home() {
           </div>
         )}
 
+        {/* Show Data Quality Analysis View */}
+        {stats && currentView === 'dataQuality' && (
+          <DataQualityAnalysisView 
+            metrics={metrics} 
+            onBack={() => setCurrentView('overview')} 
+          />
+        )}
+
         {/* Show Languages View */}
         {stats && currentView === 'languages' && (
           <LanguagesView 
@@ -289,12 +298,20 @@ export default function Home() {
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Metrics Overview</h2>
-                <button
-                  onClick={resetData}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                >
-                  Upload New File
-                </button>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => setCurrentView('dataQuality')}
+                    className="px-4 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-md transition-colors"
+                  >
+                    Data Quality Analysis
+                  </button>
+                  <button
+                    onClick={resetData}
+                    className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                  >
+                    Upload New File
+                  </button>
+                </div>
               </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
