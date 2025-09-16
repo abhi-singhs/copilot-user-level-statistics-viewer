@@ -15,7 +15,8 @@ import {
   calculateFeatureAdoption,
   calculateDailyPRUAnalysis,
   calculateAgentModeHeatmap,
-  calculateModelFeatureDistribution
+  calculateModelFeatureDistribution,
+  calculateAgentImpactData
 } from '../utils/metricsParser';
 import { filterMetricsByDateRange, getFilteredDateRange } from '../utils/dateFilters';
 import UniqueUsersView from '../components/UniqueUsersView';
@@ -30,6 +31,7 @@ import FeatureAdoptionChart from '../components/FeatureAdoptionChart';
 import PRUCostAnalysisChart from '../components/PRUCostAnalysisChart';
 import AgentModeHeatmapChart from '../components/AgentModeHeatmapChart';
 import ModelFeatureDistributionChart from '../components/ModelFeatureDistributionChart';
+import CodingAgentImpactChart from '../components/CodingAgentImpactChart';
 import DataQualityAnalysisView from '../components/DataQualityAnalysisView';
 import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 
@@ -64,7 +66,8 @@ export default function Home() {
         featureAdoptionData: null,
         pruAnalysisData: [],
         agentModeHeatmapData: [],
-        modelFeatureDistributionData: []
+        modelFeatureDistributionData: [],
+        agentImpactData: []
       };
     }
 
@@ -86,6 +89,7 @@ export default function Home() {
     const filteredPRUAnalysisData = calculateDailyPRUAnalysis(filteredMetrics);
     const filteredAgentModeHeatmapData = calculateAgentModeHeatmap(filteredMetrics);
     const filteredModelFeatureDistributionData = calculateModelFeatureDistribution(filteredMetrics);
+    const filteredAgentImpactData = calculateAgentImpactData(filteredMetrics);
 
     // Update the date range in stats based on filter
     const { startDay, endDay } = getFilteredDateRange(dateRangeFilter, originalStats.reportStartDay, originalStats.reportEndDay);
@@ -107,7 +111,8 @@ export default function Home() {
       featureAdoptionData: filteredFeatureAdoptionData,
       pruAnalysisData: filteredPRUAnalysisData,
       agentModeHeatmapData: filteredAgentModeHeatmapData,
-      modelFeatureDistributionData: filteredModelFeatureDistributionData
+      modelFeatureDistributionData: filteredModelFeatureDistributionData,
+      agentImpactData: filteredAgentImpactData
     };
   }, [rawMetrics, originalStats, dateRangeFilter, removeUnknownLanguages]);
 
@@ -123,7 +128,8 @@ export default function Home() {
     featureAdoptionData,
     pruAnalysisData,
     agentModeHeatmapData,
-    modelFeatureDistributionData
+    modelFeatureDistributionData,
+    agentImpactData
   } = filteredData;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -496,6 +502,11 @@ export default function Home() {
                 </div>
               </div>
               
+              {/* Coding Agent Impact Chart */}
+              <div className="mb-8 w-full">
+                <CodingAgentImpactChart data={agentImpactData || []} />
+              </div>
+
               {/* PRU Model Usage Chart */}
               <div className="mb-8 w-full">
                 <PRUModelUsageChart data={modelUsageData || []} />

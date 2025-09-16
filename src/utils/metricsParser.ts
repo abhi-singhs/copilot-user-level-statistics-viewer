@@ -834,3 +834,52 @@ export function calculateModelFeatureDistribution(metrics: CopilotMetrics[]): Mo
     .filter(item => item.totalInteractions > 0)
     .sort((a, b) => b.totalPRUs - a.totalPRUs);
 }
+
+export interface AgentImpactData {
+  date: string;
+  locAdded: number;
+  locDeleted: number;
+  netChange: number;
+  userCount: number;
+}
+
+export function calculateAgentImpactData(metrics: CopilotMetrics[]): AgentImpactData[] {
+  // Group by date and aggregate agent_edit data
+  const dailyData = new Map<string, {
+    locAdded: number;
+    locDeleted: number;
+    userCount: Set<number>;
+  }>();
+
+  metrics.forEach(metric => {
+    const agentEditFeature = metric.totals_by_feature.find(f => f.feature === 'agent_edit');
+    
+    if (agentEditFeature && (agentEditFeature.loc_added_sum > 0 || agentEditFeature.loc_deleted_sum > 0)) {
+      const date = metric.day;
+      
+      if (!dailyData.has(date)) {
+        dailyData.set(date, {
+          locAdded: 0,
+          locDeleted: 0,
+          userCount: new Set<number>()
+        });
+      }
+      
+      const dayData = dailyData.get(date)!;
+      dayData.locAdded += agentEditFeature.loc_added_sum;
+      dayData.locDeleted += agentEditFeature.loc_deleted_sum;
+      dayData.userCount.add(metric.user_id);
+    }
+  });
+
+  // Convert to array and sort by date
+  return Array.from(dailyData.entries())
+    .map(([date, data]) => ({
+      date,
+      locAdded: data.locAdded,
+      locDeleted: data.locDeleted,
+      netChange: data.locAdded - data.locDeleted,
+      userCount: data.userCount.size
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
