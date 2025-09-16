@@ -10,8 +10,10 @@ interface IDEStats {
   totalEngagements: number;
   totalGenerations: number;
   totalAcceptances: number;
-  totalGeneratedLoc: number;
-  totalAcceptedLoc: number;
+  locAdded: number;
+  locDeleted: number;
+  locSuggestedToAdd: number;
+  locSuggestedToDelete: number;
 }
 
 interface IDEViewProps {
@@ -27,8 +29,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
       totalEngagements: number;
       totalGenerations: number;
       totalAcceptances: number;
-      totalGeneratedLoc: number;
-      totalAcceptedLoc: number;
+      locAdded: number;
+      locDeleted: number;
+      locSuggestedToAdd: number;
+      locSuggestedToDelete: number;
     }>();
 
     for (const metric of metrics) {
@@ -41,8 +45,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
             totalEngagements: 0,
             totalGenerations: 0,
             totalAcceptances: 0,
-            totalGeneratedLoc: 0,
-            totalAcceptedLoc: 0
+            locAdded: 0,
+            locDeleted: 0,
+            locSuggestedToAdd: 0,
+            locSuggestedToDelete: 0
           });
         }
 
@@ -51,8 +57,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
         ideStats.totalGenerations += ideTotal.code_generation_activity_count;
         ideStats.totalAcceptances += ideTotal.code_acceptance_activity_count;
         ideStats.totalEngagements += ideTotal.user_initiated_interaction_count;
-        ideStats.totalGeneratedLoc += ideTotal.generated_loc_sum;
-        ideStats.totalAcceptedLoc += ideTotal.accepted_loc_sum;
+        ideStats.locAdded += ideTotal.loc_added_sum;
+        ideStats.locDeleted += ideTotal.loc_deleted_sum;
+        ideStats.locSuggestedToAdd += ideTotal.loc_suggested_to_add_sum;
+        ideStats.locSuggestedToDelete += ideTotal.loc_suggested_to_delete_sum;
       }
     }
 
@@ -63,8 +71,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
         totalEngagements: stats.totalEngagements,
         totalGenerations: stats.totalGenerations,
         totalAcceptances: stats.totalAcceptances,
-        totalGeneratedLoc: stats.totalGeneratedLoc,
-        totalAcceptedLoc: stats.totalAcceptedLoc
+        locAdded: stats.locAdded,
+        locDeleted: stats.locDeleted,
+        locSuggestedToAdd: stats.locSuggestedToAdd,
+        locSuggestedToDelete: stats.locSuggestedToDelete
       }));
   };
 
@@ -93,12 +103,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acceptances
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Generated LOC
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Accepted LOC
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acceptance Rate
               </th>
@@ -137,12 +145,10 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {ide.totalAcceptances.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ide.totalGeneratedLoc.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ide.totalAcceptedLoc.toLocaleString()}
-                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locAdded.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locDeleted.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToAdd.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToDelete.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {acceptanceRate}%
                   </td>

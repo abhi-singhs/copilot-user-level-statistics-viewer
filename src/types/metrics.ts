@@ -8,15 +8,22 @@ export interface CopilotMetrics {
   user_initiated_interaction_count: number;
   code_generation_activity_count: number;
   code_acceptance_activity_count: number;
-  generated_loc_sum: number;
-  accepted_loc_sum: number;
+  // New LOC metrics (replacing generated_loc_sum & accepted_loc_sum)
+  // loc_added_sum + loc_deleted_sum correspond to previously "accepted" (accepted showed net changes)
+  // loc_suggested_to_add_sum + loc_suggested_to_delete_sum correspond to previously "generated" suggestions
+  loc_added_sum: number;
+  loc_deleted_sum: number;
+  loc_suggested_to_add_sum: number;
+  loc_suggested_to_delete_sum: number;
   totals_by_ide: Array<{
     ide: string;
     user_initiated_interaction_count: number;
     code_generation_activity_count: number;
     code_acceptance_activity_count: number;
-    generated_loc_sum: number;
-    accepted_loc_sum: number;
+    loc_added_sum: number;
+    loc_deleted_sum: number;
+    loc_suggested_to_add_sum: number;
+    loc_suggested_to_delete_sum: number;
     last_known_plugin_version?: {
       sampled_at: string;
       plugin: string;
@@ -28,24 +35,30 @@ export interface CopilotMetrics {
     user_initiated_interaction_count: number;
     code_generation_activity_count: number;
     code_acceptance_activity_count: number;
-    generated_loc_sum: number;
-    accepted_loc_sum: number;
+    loc_added_sum: number;
+    loc_deleted_sum: number;
+    loc_suggested_to_add_sum: number;
+    loc_suggested_to_delete_sum: number;
   }>;
   totals_by_language_feature: Array<{
     language: string;
     feature: string;
     code_generation_activity_count: number;
     code_acceptance_activity_count: number;
-    generated_loc_sum: number;
-    accepted_loc_sum: number;
+    loc_added_sum: number;
+    loc_deleted_sum: number;
+    loc_suggested_to_add_sum: number;
+    loc_suggested_to_delete_sum: number;
   }>;
   totals_by_language_model: Array<{
     language: string;
     model: string;
     code_generation_activity_count: number;
     code_acceptance_activity_count: number;
-    generated_loc_sum: number;
-    accepted_loc_sum: number;
+    loc_added_sum: number;
+    loc_deleted_sum: number;
+    loc_suggested_to_add_sum: number;
+    loc_suggested_to_delete_sum: number;
   }>;
   totals_by_model_feature: Array<{
     model: string;
@@ -53,8 +66,10 @@ export interface CopilotMetrics {
     user_initiated_interaction_count: number;
     code_generation_activity_count: number;
     code_acceptance_activity_count: number;
-    generated_loc_sum: number;
-    accepted_loc_sum: number;
+    loc_added_sum: number;
+    loc_deleted_sum: number;
+    loc_suggested_to_add_sum: number;
+    loc_suggested_to_delete_sum: number;
   }>;
   used_agent: boolean;
   used_chat: boolean;
@@ -79,8 +94,10 @@ export interface UserSummary {
   total_user_initiated_interactions: number;
   total_code_generation_activities: number;
   total_code_acceptance_activities: number;
-  total_generated_loc: number;
-  total_accepted_loc: number;
+  total_loc_added: number;
+  total_loc_deleted: number;
+  total_loc_suggested_to_add: number;
+  total_loc_suggested_to_delete: number;
   days_active: number;
   used_agent: boolean;
   used_chat: boolean;

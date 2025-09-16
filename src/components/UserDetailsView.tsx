@@ -31,8 +31,11 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
   const totalInteractions = userMetrics.reduce((sum, metric) => sum + metric.user_initiated_interaction_count, 0);
   const totalGeneration = userMetrics.reduce((sum, metric) => sum + metric.code_generation_activity_count, 0);
   const totalAcceptance = userMetrics.reduce((sum, metric) => sum + metric.code_acceptance_activity_count, 0);
-  const totalGeneratedLoc = userMetrics.reduce((sum, metric) => sum + metric.generated_loc_sum, 0);
-  const totalAcceptedLoc = userMetrics.reduce((sum, metric) => sum + metric.accepted_loc_sum, 0);
+  // New LOC totals (replacing legacy Generated/Accepted LOC)
+  const totalLocAdded = userMetrics.reduce((sum, metric) => sum + metric.loc_added_sum, 0);
+  const totalLocDeleted = userMetrics.reduce((sum, metric) => sum + metric.loc_deleted_sum, 0);
+  const totalLocSuggestedToAdd = userMetrics.reduce((sum, metric) => sum + metric.loc_suggested_to_add_sum, 0);
+  const totalLocSuggestedToDelete = userMetrics.reduce((sum, metric) => sum + metric.loc_suggested_to_delete_sum, 0);
   const daysActive = userMetrics.length;
   const usedAgent = userMetrics.some(metric => metric.used_agent);
   const usedChat = userMetrics.some(metric => metric.used_chat);
@@ -69,8 +72,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         existing.user_initiated_interaction_count += feature.user_initiated_interaction_count;
         existing.code_generation_activity_count += feature.code_generation_activity_count;
         existing.code_acceptance_activity_count += feature.code_acceptance_activity_count;
-        existing.generated_loc_sum += feature.generated_loc_sum;
-        existing.accepted_loc_sum += feature.accepted_loc_sum;
+        existing.loc_added_sum += feature.loc_added_sum;
+        existing.loc_deleted_sum += feature.loc_deleted_sum;
+        existing.loc_suggested_to_add_sum += feature.loc_suggested_to_add_sum;
+        existing.loc_suggested_to_delete_sum += feature.loc_suggested_to_delete_sum;
       } else {
         acc.push({ ...feature });
       }
@@ -86,8 +91,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         existing.user_initiated_interaction_count += ide.user_initiated_interaction_count;
         existing.code_generation_activity_count += ide.code_generation_activity_count;
         existing.code_acceptance_activity_count += ide.code_acceptance_activity_count;
-        existing.generated_loc_sum += ide.generated_loc_sum;
-        existing.accepted_loc_sum += ide.accepted_loc_sum;
+        existing.loc_added_sum += ide.loc_added_sum;
+        existing.loc_deleted_sum += ide.loc_deleted_sum;
+        existing.loc_suggested_to_add_sum += ide.loc_suggested_to_add_sum;
+        existing.loc_suggested_to_delete_sum += ide.loc_suggested_to_delete_sum;
       } else {
         acc.push({ ...ide });
       }
@@ -103,8 +110,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       if (existing) {
         existing.code_generation_activity_count += item.code_generation_activity_count;
         existing.code_acceptance_activity_count += item.code_acceptance_activity_count;
-        existing.generated_loc_sum += item.generated_loc_sum;
-        existing.accepted_loc_sum += item.accepted_loc_sum;
+        existing.loc_added_sum += item.loc_added_sum;
+        existing.loc_deleted_sum += item.loc_deleted_sum;
+        existing.loc_suggested_to_add_sum += item.loc_suggested_to_add_sum;
+        existing.loc_suggested_to_delete_sum += item.loc_suggested_to_delete_sum;
       } else {
         acc.push({ ...item });
       }
@@ -121,8 +130,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         existing.user_initiated_interaction_count += item.user_initiated_interaction_count;
         existing.code_generation_activity_count += item.code_generation_activity_count;
         existing.code_acceptance_activity_count += item.code_acceptance_activity_count;
-        existing.generated_loc_sum += item.generated_loc_sum;
-        existing.accepted_loc_sum += item.accepted_loc_sum;
+        existing.loc_added_sum += item.loc_added_sum;
+        existing.loc_deleted_sum += item.loc_deleted_sum;
+        existing.loc_suggested_to_add_sum += item.loc_suggested_to_add_sum;
+        existing.loc_suggested_to_delete_sum += item.loc_suggested_to_delete_sum;
       } else {
         acc.push({ ...item });
       }
@@ -1095,7 +1106,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="text-2xl font-bold text-blue-600">{totalInteractions.toLocaleString()}</div>
           <div className="text-sm text-gray-600">Total Interactions</div>
@@ -1109,12 +1120,20 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
           <div className="text-sm text-gray-600">Code Acceptance</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-orange-600">{totalGeneratedLoc.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Generated LOC</div>
+          <div className="text-2xl font-bold text-orange-600">{totalLocAdded.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">LOC Added</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-teal-600">{totalAcceptedLoc.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Accepted LOC</div>
+          <div className="text-2xl font-bold text-rose-600">{totalLocDeleted.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">LOC Deleted</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-teal-600">{totalLocSuggestedToAdd.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">Suggested Add</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-indigo-600">{totalLocSuggestedToDelete.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">Suggested Delete</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="text-2xl font-bold text-indigo-600">{daysActive}</div>
@@ -1243,8 +1262,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -1259,8 +1280,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.user_initiated_interaction_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_generation_activity_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_acceptance_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.generated_loc_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.accepted_loc_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_added_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_deleted_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_suggested_to_add_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_suggested_to_delete_sum.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -1279,8 +1302,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -1290,8 +1315,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.user_initiated_interaction_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.code_generation_activity_count.toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.code_acceptance_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.generated_loc_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.accepted_loc_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.loc_added_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.loc_deleted_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.loc_suggested_to_add_sum.toLocaleString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{feature.loc_suggested_to_delete_sum.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -1375,8 +1402,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
@@ -1385,8 +1414,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                                 <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_added_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_deleted_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_add_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_delete_sum.toLocaleString()}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -1829,8 +1860,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generated LOC</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Accepted LOC</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
@@ -1840,8 +1873,10 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
                                 <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.generated_loc_sum.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.accepted_loc_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_added_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_deleted_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_add_sum.toLocaleString()}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_delete_sum.toLocaleString()}</td>
                               </tr>
                             ))}
                           </tbody>

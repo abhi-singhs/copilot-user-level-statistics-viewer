@@ -3,16 +3,48 @@ import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 export function parseMetricsFile(fileContent: string): CopilotMetrics[] {
   const lines = fileContent.split('\n').filter(line => line.trim());
   const metrics: CopilotMetrics[] = [];
-  
+
   for (const line of lines) {
     try {
-      const parsed = JSON.parse(line) as CopilotMetrics;
-      metrics.push(parsed);
+      const parsedUnknown = JSON.parse(line) as unknown;
+      if (typeof parsedUnknown !== 'object' || parsedUnknown === null) {
+        console.warn('Skipping non-object JSON line');
+        continue;
+      }
+      const parsedRaw = parsedUnknown as Record<string, unknown>;
+
+      // Validation: reject old schema lines containing deprecated fields
+      const hasDeprecatedRoot = 'generated_loc_sum' in parsedRaw || 'accepted_loc_sum' in parsedRaw;
+      let hasDeprecatedNested = false;
+      const tf = parsedRaw['totals_by_feature'];
+      if (Array.isArray(tf)) {
+        hasDeprecatedNested = tf.some(item => typeof item === 'object' && item !== null && ('generated_loc_sum' in (item as Record<string, unknown>) || 'accepted_loc_sum' in (item as Record<string, unknown>)));
+      }
+      if (hasDeprecatedRoot || hasDeprecatedNested) {
+        console.warn('Skipping line with deprecated LOC fields (old schema not supported):', line.substring(0, 200));
+        continue;
+      }
+
+      // Basic presence validation for new required fields
+      const requiredRootFields: Array<keyof CopilotMetrics> = [
+        'loc_added_sum',
+        'loc_deleted_sum',
+        'loc_suggested_to_add_sum',
+        'loc_suggested_to_delete_sum'
+      ];
+      const missing = requiredRootFields.filter(f => !(f in parsedRaw));
+      if (missing.length > 0) {
+        console.warn('Skipping line missing new LOC fields:', missing.join(','));
+        continue;
+      }
+
+  // We rely on upstream schema conformity; at runtime we only soft-validated key fields
+  metrics.push(parsedRaw as unknown as CopilotMetrics);
     } catch (error) {
       console.warn('Failed to parse line:', line, error);
     }
   }
-  
+
   return metrics;
 }
 
@@ -150,8 +182,10 @@ export function calculateUserSummaries(metrics: CopilotMetrics[]): UserSummary[]
         total_user_initiated_interactions: 0,
         total_code_generation_activities: 0,
         total_code_acceptance_activities: 0,
-        total_generated_loc: 0,
-        total_accepted_loc: 0,
+        total_loc_added: 0,
+        total_loc_deleted: 0,
+        total_loc_suggested_to_add: 0,
+        total_loc_suggested_to_delete: 0,
         days_active: 0,
         used_agent: false,
         used_chat: false,
@@ -164,8 +198,10 @@ export function calculateUserSummaries(metrics: CopilotMetrics[]): UserSummary[]
     userSummary.total_user_initiated_interactions += metric.user_initiated_interaction_count;
     userSummary.total_code_generation_activities += metric.code_generation_activity_count;
     userSummary.total_code_acceptance_activities += metric.code_acceptance_activity_count;
-    userSummary.total_generated_loc += metric.generated_loc_sum;
-    userSummary.total_accepted_loc += metric.accepted_loc_sum;
+    userSummary.total_loc_added += metric.loc_added_sum;
+    userSummary.total_loc_deleted += metric.loc_deleted_sum;
+    userSummary.total_loc_suggested_to_add += metric.loc_suggested_to_add_sum;
+    userSummary.total_loc_suggested_to_delete += metric.loc_suggested_to_delete_sum;
     userSummary.days_active += 1;
     userSummary.used_agent = userSummary.used_agent || metric.used_agent;
     userSummary.used_chat = userSummary.used_chat || metric.used_chat;
@@ -228,8 +264,10 @@ export interface LanguageStats {
   totalAcceptances: number;
   totalEngagements: number;
   uniqueUsers: number;
-  generatedLoc: number;
-  acceptedLoc: number;
+  locAdded: number;
+  locDeleted: number;
+  locSuggestedToAdd: number;
+  locSuggestedToDelete: number;
 }
 
 export interface DailyChatUsersData {
@@ -368,8 +406,10 @@ export function calculateLanguageStats(metrics: CopilotMetrics[]): LanguageStats
   const languageMap = new Map<string, {
     totalGenerations: number;
     totalAcceptances: number;
-    generatedLoc: number;
-    acceptedLoc: number;
+    locAdded: number;
+    locDeleted: number;
+    locSuggestedToAdd: number;
+    locSuggestedToDelete: number;
     users: Set<number>;
   }>();
 
@@ -381,8 +421,10 @@ export function calculateLanguageStats(metrics: CopilotMetrics[]): LanguageStats
         languageMap.set(language, {
           totalGenerations: 0,
           totalAcceptances: 0,
-          generatedLoc: 0,
-          acceptedLoc: 0,
+          locAdded: 0,
+          locDeleted: 0,
+          locSuggestedToAdd: 0,
+          locSuggestedToDelete: 0,
           users: new Set()
         });
       }
@@ -390,8 +432,10 @@ export function calculateLanguageStats(metrics: CopilotMetrics[]): LanguageStats
       const langStats = languageMap.get(language)!;
       langStats.totalGenerations += langFeature.code_generation_activity_count;
       langStats.totalAcceptances += langFeature.code_acceptance_activity_count;
-      langStats.generatedLoc += langFeature.generated_loc_sum;
-      langStats.acceptedLoc += langFeature.accepted_loc_sum;
+      langStats.locAdded += langFeature.loc_added_sum;
+      langStats.locDeleted += langFeature.loc_deleted_sum;
+      langStats.locSuggestedToAdd += langFeature.loc_suggested_to_add_sum;
+      langStats.locSuggestedToDelete += langFeature.loc_suggested_to_delete_sum;
       langStats.users.add(metric.user_id);
     }
   }
@@ -403,8 +447,10 @@ export function calculateLanguageStats(metrics: CopilotMetrics[]): LanguageStats
       totalAcceptances: stats.totalAcceptances,
       totalEngagements: stats.totalGenerations + stats.totalAcceptances,
       uniqueUsers: stats.users.size,
-      generatedLoc: stats.generatedLoc,
-      acceptedLoc: stats.acceptedLoc
+      locAdded: stats.locAdded,
+      locDeleted: stats.locDeleted,
+      locSuggestedToAdd: stats.locSuggestedToAdd,
+      locSuggestedToDelete: stats.locSuggestedToDelete
     }))
     .sort((a, b) => b.totalEngagements - a.totalEngagements);
 }

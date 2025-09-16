@@ -8,7 +8,7 @@ interface LanguagesViewProps {
   onBack: () => void;
 }
 
-type SortField = 'language' | 'totalGenerations' | 'totalAcceptances' | 'totalEngagements' | 'uniqueUsers' | 'generatedLoc' | 'acceptedLoc';
+type SortField = 'language' | 'totalGenerations' | 'totalAcceptances' | 'totalEngagements' | 'uniqueUsers' | 'locAdded' | 'locDeleted' | 'locSuggestedToAdd' | 'locSuggestedToDelete';
 type SortDirection = 'asc' | 'desc';
 
 export default function LanguagesView({ languages, onBack }: LanguagesViewProps) {
@@ -69,8 +69,10 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
   const totalAcceptances = languages.reduce((sum, lang) => sum + lang.totalAcceptances, 0);
   const totalEngagements = languages.reduce((sum, lang) => sum + lang.totalEngagements, 0);
   const totalUsers = Math.max(...languages.map(lang => lang.uniqueUsers), 0);
-  const totalGeneratedLoc = languages.reduce((sum, lang) => sum + lang.generatedLoc, 0);
-  const totalAcceptedLoc = languages.reduce((sum, lang) => sum + lang.acceptedLoc, 0);
+  const totalLocAdded = languages.reduce((sum, lang) => sum + lang.locAdded, 0);
+  const totalLocDeleted = languages.reduce((sum, lang) => sum + lang.locDeleted, 0);
+  const totalLocSuggestedToAdd = languages.reduce((sum, lang) => sum + lang.locSuggestedToAdd, 0);
+  const totalLocSuggestedToDelete = languages.reduce((sum, lang) => sum + lang.locSuggestedToDelete, 0);
 
   // Create sorted lists for the two tables
   const languagesByGenerations = [...languages].sort((a, b) => b.totalGenerations - a.totalGenerations);
@@ -101,7 +103,7 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
           <div className="text-2xl font-bold text-blue-600">{totalLanguages}</div>
           <div className="text-sm text-gray-600">Total Languages</div>
@@ -123,12 +125,20 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
           <div className="text-sm text-gray-600">Max Users/Lang</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-indigo-600">{totalGeneratedLoc.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Generated LOC</div>
+          <div className="text-2xl font-bold text-orange-600">{totalLocAdded.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">LOC Added</div>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-          <div className="text-2xl font-bold text-amber-600">{totalAcceptedLoc.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Accepted LOC</div>
+          <div className="text-2xl font-bold text-rose-600">{totalLocDeleted.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">LOC Deleted</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-teal-600">{totalLocSuggestedToAdd.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">Suggested Add</div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="text-2xl font-bold text-indigo-600">{totalLocSuggestedToDelete.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">Suggested Delete</div>
         </div>
       </div>
 
@@ -313,21 +323,21 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   <button
-                    onClick={() => handleSort('generatedLoc')}
+                    onClick={() => handleSort('locAdded')}
                     className="flex items-center hover:text-gray-700 focus:outline-none"
                   >
-                    Generated LOC
-                    {getSortIcon('generatedLoc')}
+                    LOC Added
+                    {getSortIcon('locAdded')}
                   </button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('acceptedLoc')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Accepted LOC
-                    {getSortIcon('acceptedLoc')}
-                  </button>
+                  <button onClick={() => handleSort('locDeleted')} className="flex items-center hover:text-gray-700 focus:outline-none">LOC Deleted {getSortIcon('locDeleted')}</button>
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('locSuggestedToAdd')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Add {getSortIcon('locSuggestedToAdd')}</button>
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <button onClick={() => handleSort('locSuggestedToDelete')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Delete {getSortIcon('locSuggestedToDelete')}</button>
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acceptance Rate
@@ -357,12 +367,10 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{lang.uniqueUsers.toLocaleString()}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.generatedLoc.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.acceptedLoc.toLocaleString()}</div>
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locAdded.toLocaleString()}</div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locDeleted.toLocaleString()}</div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToAdd.toLocaleString()}</div></td>
+                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToDelete.toLocaleString()}</div></td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{acceptanceRate}%</div>
                     </td>
