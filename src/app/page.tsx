@@ -309,7 +309,9 @@ export default function Home() {
             {/* Main Content */}
             <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Metrics Overview</h2>
+                <h2 className="text-xl text-gray-900">
+                  <span className="font-semibold">Metrics Overview</span> - Data covers the period from <strong>{formatDate(stats.reportStartDay)}</strong> to <strong>{formatDate(stats.reportEndDay)}</strong>
+                </h2>
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setCurrentView('dataQuality')}
@@ -543,8 +545,7 @@ export default function Home() {
                   askModeUsers: 0,
                   editModeUsers: 0,
                   inlineModeUsers: 0,
-                  codeReviewUsers: 0,
-                  workspaceUsers: 0
+                  codeReviewUsers: 0
                 }} />
               </div>
 
@@ -564,13 +565,6 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Reporting Period</h3>
-              <p className="text-gray-700">
-                Data covers the period from <strong>{formatDate(stats.reportStartDay)}</strong> to{' '}
-                <strong>{formatDate(stats.reportEndDay)}</strong>
-              </p>
-            </div>
             </div>
 
             {/* Side Panel */}
