@@ -60,7 +60,6 @@ export default function ModelFeatureDistributionChart({ data }: ModelFeatureDist
     inlineMode: 'rgb(168, 85, 247)',   // purple
     codeCompletion: 'rgb(34, 197, 94)', // green
     codeReview: 'rgb(20, 184, 166)',   // teal
-    workspace: 'rgb(249, 115, 22)',    // orange
     other: 'rgb(156, 163, 175)'        // gray
   };
 
@@ -71,7 +70,6 @@ export default function ModelFeatureDistributionChart({ data }: ModelFeatureDist
     inlineMode: 'Inline Chat',
     codeCompletion: 'Code Completion',
     codeReview: 'Code Review',
-    workspace: 'Workspace',
     other: 'Other'
   };
 

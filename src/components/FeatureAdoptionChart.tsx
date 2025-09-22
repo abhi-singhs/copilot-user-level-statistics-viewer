@@ -49,8 +49,7 @@ export default function FeatureAdoptionChart({ data }: FeatureAdoptionChartProps
     { name: 'Edit Mode', count: data.editModeUsers, color: 'rgb(245, 158, 11)', description: 'Users who used chat edit mode' },
     { name: 'Agent Mode', count: data.agentModeUsers, color: 'rgb(239, 68, 68)', description: 'Users who used agent mode (premium)' },
     { name: 'Inline Chat', count: data.inlineModeUsers, color: 'rgb(168, 85, 247)', description: 'Users who used inline chat' },
-    { name: 'Code Review', count: data.codeReviewUsers, color: 'rgb(20, 184, 166)', description: 'Users who used code review features' },
-    { name: 'Workspace', count: data.workspaceUsers, color: 'rgb(249, 115, 22)', description: 'Users who used workspace features' }
+    { name: 'Code Review', count: data.codeReviewUsers, color: 'rgb(20, 184, 166)', description: 'Users who used code review features' }
   ];
 
   const chartData = {

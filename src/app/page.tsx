@@ -16,7 +16,8 @@ import {
   calculateDailyPRUAnalysis,
   calculateAgentModeHeatmap,
   calculateModelFeatureDistribution,
-  calculateAgentImpactData
+  calculateAgentImpactData,
+  calculateCodeCompletionImpactData
 } from '../utils/metricsParser';
 import { filterMetricsByDateRange, getFilteredDateRange } from '../utils/dateFilters';
 import UniqueUsersView from '../components/UniqueUsersView';
@@ -32,6 +33,7 @@ import PRUCostAnalysisChart from '../components/PRUCostAnalysisChart';
 import AgentModeHeatmapChart from '../components/AgentModeHeatmapChart';
 import ModelFeatureDistributionChart from '../components/ModelFeatureDistributionChart';
 import CodingAgentImpactChart from '../components/CodingAgentImpactChart';
+import CodeCompletionImpactChart from '../components/CodeCompletionImpactChart';
 import DataQualityAnalysisView from '../components/DataQualityAnalysisView';
 import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 
@@ -67,7 +69,8 @@ export default function Home() {
         pruAnalysisData: [],
         agentModeHeatmapData: [],
         modelFeatureDistributionData: [],
-        agentImpactData: []
+        agentImpactData: [],
+        codeCompletionImpactData: []
       };
     }
 
@@ -90,6 +93,7 @@ export default function Home() {
     const filteredAgentModeHeatmapData = calculateAgentModeHeatmap(filteredMetrics);
     const filteredModelFeatureDistributionData = calculateModelFeatureDistribution(filteredMetrics);
     const filteredAgentImpactData = calculateAgentImpactData(filteredMetrics);
+    const filteredCodeCompletionImpactData = calculateCodeCompletionImpactData(filteredMetrics);
 
     // Update the date range in stats based on filter
     const { startDay, endDay } = getFilteredDateRange(dateRangeFilter, originalStats.reportStartDay, originalStats.reportEndDay);
@@ -112,7 +116,8 @@ export default function Home() {
       pruAnalysisData: filteredPRUAnalysisData,
       agentModeHeatmapData: filteredAgentModeHeatmapData,
       modelFeatureDistributionData: filteredModelFeatureDistributionData,
-      agentImpactData: filteredAgentImpactData
+      agentImpactData: filteredAgentImpactData,
+      codeCompletionImpactData: filteredCodeCompletionImpactData
     };
   }, [rawMetrics, originalStats, dateRangeFilter, removeUnknownLanguages]);
 
@@ -129,7 +134,8 @@ export default function Home() {
     pruAnalysisData,
     agentModeHeatmapData,
     modelFeatureDistributionData,
-    agentImpactData
+    agentImpactData,
+    codeCompletionImpactData
   } = filteredData;
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -487,6 +493,26 @@ export default function Home() {
               <ChatRequestsChart data={chatRequestsData} />
             </div>
 
+            {/* Copilot Impact Analysis Section */}
+            <div className="mt-8">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Copilot Impact Analysis</h3>
+                <p className="text-gray-600 text-sm">
+                  Analyze the impact and productivity gains from Copilot features, including code completion and agent mode contributions to your codebase.
+                </p>
+              </div>
+              
+              {/* Coding Agent Impact Chart */}
+              <div className="mb-8 w-full">
+                <CodingAgentImpactChart data={agentImpactData || []} />
+              </div>
+
+              {/* Code Completion Impact Chart */}
+              <div className="mb-8 w-full">
+                <CodeCompletionImpactChart data={codeCompletionImpactData || []} />
+              </div>
+            </div>
+
             {/* PRU Analysis Section */}
             <div className="mt-8">
               <div className="mb-6">
@@ -500,11 +526,6 @@ export default function Home() {
                   Feature Adoption: {featureAdoptionData ? 'Available' : 'Not available'},
                   PRU Analysis: {pruAnalysisData?.length || 0} records
                 </div>
-              </div>
-              
-              {/* Coding Agent Impact Chart */}
-              <div className="mb-8 w-full">
-                <CodingAgentImpactChart data={agentImpactData || []} />
               </div>
 
               {/* PRU Model Usage Chart */}

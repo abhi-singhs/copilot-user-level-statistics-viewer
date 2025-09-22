@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export type DateRangeFilter = 'all' | 'last28days' | 'last7days';
+export type DateRangeFilter = 'all' | 'last28days' | 'last14days' | 'last7days';
 
 interface FilterPanelProps {
   onDateRangeChange: (filter: DateRangeFilter) => void;
@@ -26,6 +26,7 @@ export default function FilterPanel({
   const filterOptions = [
     { value: 'all' as DateRangeFilter, label: 'All data' },
     { value: 'last28days' as DateRangeFilter, label: 'Last 28 days' },
+    { value: 'last14days' as DateRangeFilter, label: 'Last 14 days' },
     { value: 'last7days' as DateRangeFilter, label: 'Last 7 days' }
   ];
 
@@ -50,6 +51,10 @@ export default function FilterPanel({
         const start7 = new Date(endDate);
         start7.setDate(start7.getDate() - 6); // 7 days including end date
         return `${formatDateShort(start7.toISOString().split('T')[0])} - ${formatDateShort(reportEndDay)}`;
+      case 'last14days':
+        const start14 = new Date(endDate);
+        start14.setDate(start14.getDate() - 13); // 14 days including end date
+        return `${formatDateShort(start14.toISOString().split('T')[0])} - ${formatDateShort(reportEndDay)}`;
       case 'last28days':
         const start28 = new Date(endDate);
         start28.setDate(start28.getDate() - 27); // 28 days including end date

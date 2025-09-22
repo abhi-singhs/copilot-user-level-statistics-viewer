@@ -18,6 +18,10 @@ export function filterMetricsByDateRange(
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 6); // 7 days including end date
       break;
+    case 'last14days':
+      startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 13); // 14 days including end date
+      break;
     case 'last28days':
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 27); // 28 days including end date
@@ -49,6 +53,10 @@ export function getFilteredDateRange(
     case 'last7days':
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 6);
+      break;
+    case 'last14days':
+      startDate = new Date(endDate);
+      startDate.setDate(startDate.getDate() - 13);
       break;
     case 'last28days':
       startDate = new Date(endDate);

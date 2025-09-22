@@ -910,3 +910,61 @@ export function calculateAgentImpactData(metrics: CopilotMetrics[]): AgentImpact
     
   return result;
 }
+
+export interface CodeCompletionImpactData {
+  date: string;
+  locAdded: number;
+  locDeleted: number;
+  netChange: number;
+  userCount: number;
+  totalUniqueUsers?: number;
+}
+
+export function calculateCodeCompletionImpactData(metrics: CopilotMetrics[]): CodeCompletionImpactData[] {
+  // Group by date and aggregate code completion data
+  const dailyData = new Map<string, {
+    locAdded: number;
+    locDeleted: number;
+    userCount: Set<number>;
+  }>();
+  
+  // Track all unique users across all dates
+  const allUniqueUsers = new Set<number>();
+
+  metrics.forEach(metric => {
+    // Look for code_completion feature
+    const codeCompletionFeature = metric.totals_by_feature.find(f => f.feature === 'code_completion');
+    
+    if (codeCompletionFeature && (codeCompletionFeature.loc_added_sum > 0 || codeCompletionFeature.loc_deleted_sum > 0)) {
+      const date = metric.day;
+      
+      if (!dailyData.has(date)) {
+        dailyData.set(date, {
+          locAdded: 0,
+          locDeleted: 0,
+          userCount: new Set<number>()
+        });
+      }
+      
+      const dayData = dailyData.get(date)!;
+      dayData.locAdded += codeCompletionFeature.loc_added_sum;
+      dayData.locDeleted += codeCompletionFeature.loc_deleted_sum;
+      dayData.userCount.add(metric.user_id);
+      allUniqueUsers.add(metric.user_id);
+    }
+  });
+
+  // Convert to array and sort by date
+  const result = Array.from(dailyData.entries())
+    .map(([date, data]) => ({
+      date,
+      locAdded: data.locAdded,
+      locDeleted: data.locDeleted,
+      netChange: data.locAdded - data.locDeleted,
+      userCount: data.userCount.size,
+      totalUniqueUsers: allUniqueUsers.size
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+  return result;
+}
