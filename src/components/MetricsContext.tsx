@@ -1,24 +1,37 @@
 "use client";
 
 import React, { createContext, useContext, useState } from 'react';
+import {
+  DailyEngagementData,
+  DailyChatUsersData,
+  DailyChatRequestsData,
+  LanguageStats,
+  DailyModelUsageData,
+  FeatureAdoptionData,
+  DailyPRUAnalysisData,
+  AgentModeHeatmapData,
+  ModelFeatureDistributionData,
+  AgentImpactData,
+  CodeCompletionImpactData
+} from '../utils/metricsParser';
+import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 
-// Shape of the filtered metrics data we care about across pages.
-// This intentionally mirrors the object returned in page.tsx useMemo.
+// Strongly typed shape of the filtered metrics data shared via context.
 export interface FilteredMetricsData {
-  metrics: any[]; // Raw filtered metrics entries
-  stats: any | null; // MetricsStats like object
-  userSummaries: any[];
-  engagementData: any[];
-  chatUsersData: any[];
-  chatRequestsData: any[];
-  languageStats: any[];
-  modelUsageData: any[];
-  featureAdoptionData: any | null;
-  pruAnalysisData: any[];
-  agentModeHeatmapData: any[];
-  modelFeatureDistributionData: any[];
-  agentImpactData: any[];
-  codeCompletionImpactData: any[];
+  metrics: CopilotMetrics[];
+  stats: MetricsStats | null;
+  userSummaries: UserSummary[];
+  engagementData: DailyEngagementData[];
+  chatUsersData: DailyChatUsersData[];
+  chatRequestsData: DailyChatRequestsData[];
+  languageStats: LanguageStats[];
+  modelUsageData: DailyModelUsageData[];
+  featureAdoptionData: FeatureAdoptionData | null;
+  pruAnalysisData: DailyPRUAnalysisData[];
+  agentModeHeatmapData: AgentModeHeatmapData[];
+  modelFeatureDistributionData: ModelFeatureDistributionData[];
+  agentImpactData: AgentImpactData[];
+  codeCompletionImpactData: CodeCompletionImpactData[];
 }
 
 interface MetricsContextValue {

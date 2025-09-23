@@ -3,10 +3,11 @@
 import React from 'react';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import AgentModeHeatmapChart from './charts/AgentModeHeatmapChart';
+import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricsParser';
 
 interface CopilotAdoptionViewProps {
-  featureAdoptionData: any; // keeping loose typing consistent with existing charts
-  agentModeHeatmapData: any[];
+  featureAdoptionData: FeatureAdoptionData | null;
+  agentModeHeatmapData: AgentModeHeatmapData[];
   onBack: () => void;
 }
 

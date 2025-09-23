@@ -33,7 +33,7 @@ import CopilotImpactView from '../components/CopilotImpactView';
 import DataQualityAnalysisView from '../components/DataQualityAnalysisView';
 import FilterPanel, { DateRangeFilter } from '../components/FilterPanel';
 import MetricTile from '../components/MetricTile';
-import { useMetricsData } from '../components/MetricsContext';
+import { useMetricsData, FilteredMetricsData } from '../components/MetricsContext';
 
 type ViewMode = 'overview' | 'users' | 'userDetails' | 'languages' | 'ides' | 'dataQuality' | 'copilotImpact' | 'pruUsage' | 'copilotAdoption';
 
@@ -103,7 +103,7 @@ export default function Home() {
       reportEndDay: endDay
     };
 
-    return {
+    const result: FilteredMetricsData = {
       metrics: filteredMetrics,
       stats: updatedStats,
       userSummaries: filteredUserSummaries,
@@ -119,6 +119,7 @@ export default function Home() {
       agentImpactData: filteredAgentImpactData,
       codeCompletionImpactData: filteredCodeCompletionImpactData
     };
+    return result;
   }, [rawMetrics, originalStats, dateRangeFilter, removeUnknownLanguages]);
 
   const { 
@@ -141,7 +142,7 @@ export default function Home() {
   // Sync filtered data into global context whenever recalculated (only when stats exist to avoid empty placeholder overwriting non-empty state during transitions).
   useEffect(() => {
     if (stats) {
-      setFilteredData(filteredData as any);
+  setFilteredData(filteredData);
     }
   }, [filteredData, stats, setFilteredData]);
 

@@ -4,11 +4,16 @@ import React from 'react';
 import PRUModelUsageChart from './charts/PRUModelUsageChart';
 import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
 import ModelFeatureDistributionChart from './charts/ModelFeatureDistributionChart';
+import type {
+  DailyModelUsageData,
+  DailyPRUAnalysisData,
+  ModelFeatureDistributionData
+} from '../utils/metricsParser';
 
 interface PRUUsageAnalysisViewProps {
-  modelUsageData: any[]; // existing loose typing consistent with other charts
-  pruAnalysisData: any[];
-  modelFeatureDistributionData: any[];
+  modelUsageData: DailyModelUsageData[];
+  pruAnalysisData: DailyPRUAnalysisData[];
+  modelFeatureDistributionData: ModelFeatureDistributionData[];
   onBack: () => void;
 }
 

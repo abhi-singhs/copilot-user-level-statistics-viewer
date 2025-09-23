@@ -3,10 +3,11 @@
 import React from 'react';
 import CodingAgentImpactChart from './charts/CodingAgentImpactChart';
 import CodeCompletionImpactChart from './charts/CodeCompletionImpactChart';
+import type { AgentImpactData, CodeCompletionImpactData } from '../utils/metricsParser';
 
 interface CopilotImpactViewProps {
-  agentImpactData: any[]; // using existing loose typing pattern in charts
-  codeCompletionImpactData: any[];
+  agentImpactData: AgentImpactData[];
+  codeCompletionImpactData: CodeCompletionImpactData[];
   onBack: () => void;
 }
 
