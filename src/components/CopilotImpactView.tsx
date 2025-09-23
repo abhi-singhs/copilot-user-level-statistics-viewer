@@ -29,13 +29,11 @@ export default function CopilotImpactView({ agentImpactData, codeCompletionImpac
         </button>
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Coding Agent Impact</h3>
+      <div className="mb-12">       
         <CodingAgentImpactChart data={agentImpactData || []} />
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Code Completion Impact</h3>
+      <div className="mb-6 pt-4">        
         <CodeCompletionImpactChart data={codeCompletionImpactData || []} />
       </div>
     </div>

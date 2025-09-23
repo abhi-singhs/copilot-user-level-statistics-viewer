@@ -438,7 +438,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-4 gap-6 mt-6">
               <MetricTile
                 title="Copilot Impact"
-                value={''}
+                value={'Insights'}
                 subtitle="Understand Impact for your organization"
                 accent="indigo"
                 interactive
@@ -447,7 +447,7 @@ export default function Home() {
               />
               <MetricTile
                 title="PRU Usage Analysis"
-                value={''}
+                value={'Insights'}
                 subtitle="Understand Premium Model utilization"
                 accent="purple"
                 interactive

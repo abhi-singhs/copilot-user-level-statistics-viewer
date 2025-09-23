@@ -40,18 +40,15 @@ export default function PRUUsageAnalysisView({
         </button>
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Daily PRU vs Standard Model Usage</h3>
+      <div className="mb-12">
         <PRUModelUsageChart data={modelUsageData || []} />
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">PRU Service Value Analysis</h3>
+      <div className="mb-12 pt-4">
         <PRUCostAnalysisChart data={pruAnalysisData || []} />
       </div>
 
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Model Feature Distribution</h3>
+      <div className="mb-6 pt-4">
         <ModelFeatureDistributionChart data={modelFeatureDistributionData || []} />
       </div>
     </div>

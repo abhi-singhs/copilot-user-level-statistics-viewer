@@ -29,8 +29,7 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
         </button>
       </div>
 
-      <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Feature Adoption Funnel</h3>
+      <div className="mb-12">
         <FeatureAdoptionChart data={featureAdoptionData || {
           totalUsers: 0,
           completionUsers: 0,
@@ -43,8 +42,7 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
         }} />
       </div>
 
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Agent Mode Usage Heatmap</h3>
+      <div className="mb-6 pt-4">
         <AgentModeHeatmapChart data={agentModeHeatmapData || []} />
       </div>
     </div>
