@@ -168,7 +168,7 @@ export default function FeatureAdoptionChart({ data }: FeatureAdoptionChartProps
         <div className="text-center">
           <div className="text-2xl font-bold text-purple-600">{Math.round(advancedUserRate)}%</div>
           <div className="text-sm text-gray-600">Advanced Users</div>
-          <div className="text-xs text-gray-500">Using premium features</div>
+          <div className="text-xs text-gray-500">Using Agent Mode</div>
         </div>
       </div>
 
@@ -188,9 +188,9 @@ export default function FeatureAdoptionChart({ data }: FeatureAdoptionChartProps
           </p>
         </div>
         <div className="p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-semibold text-blue-800 mb-2">Premium Features</h4>
+          <h4 className="font-semibold text-blue-800 mb-2">Advanced Features</h4>
           <p className="text-sm text-blue-700">
-            Agent Mode is a advanced feature that can drive significant value for users. 
+            Agent Mode is an advanced feature that can drive significant value for users.
             {agentRate > 15 ? ' High adoption suggests good value perception.' : ' Consider promoting Agent Mode benefits to increase adoption.'}
           </p>
         </div>
