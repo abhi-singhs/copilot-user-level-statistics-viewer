@@ -59,12 +59,6 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
   }, []);
 
   // Plugin version analysis
-  interface PluginVersionData {
-    version: string;
-    userCount: number;
-    usernames: string[];
-  }
-
   const pluginVersionAnalysis = React.useMemo(() => {
     const versionMap = new Map<string, Set<string>>();
     
