@@ -1,9 +1,9 @@
 "use client";
 
 import React from 'react';
-import PRUModelUsageChart from './PRUModelUsageChart';
-import PRUCostAnalysisChart from './PRUCostAnalysisChart';
-import ModelFeatureDistributionChart from './ModelFeatureDistributionChart';
+import PRUModelUsageChart from './charts/PRUModelUsageChart';
+import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
+import ModelFeatureDistributionChart from './charts/ModelFeatureDistributionChart';
 
 interface PRUUsageAnalysisViewProps {
   modelUsageData: any[]; // existing loose typing consistent with other charts

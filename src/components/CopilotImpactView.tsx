@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import CodingAgentImpactChart from './CodingAgentImpactChart';
-import CodeCompletionImpactChart from './CodeCompletionImpactChart';
+import CodingAgentImpactChart from './charts/CodingAgentImpactChart';
+import CodeCompletionImpactChart from './charts/CodeCompletionImpactChart';
 
 interface CopilotImpactViewProps {
   agentImpactData: any[]; // using existing loose typing pattern in charts

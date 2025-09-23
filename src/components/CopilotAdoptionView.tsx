@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import FeatureAdoptionChart from './FeatureAdoptionChart';
-import AgentModeHeatmapChart from './AgentModeHeatmapChart';
+import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
+import AgentModeHeatmapChart from './charts/AgentModeHeatmapChart';
 
 interface CopilotAdoptionViewProps {
   featureAdoptionData: any; // keeping loose typing consistent with existing charts

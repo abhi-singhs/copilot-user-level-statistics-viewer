@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { useMetricsData } from '../../components/MetricsContext';
-import CodingAgentImpactChart from '../../components/CodingAgentImpactChart';
-import CodeCompletionImpactChart from '../../components/CodeCompletionImpactChart';
+import CodingAgentImpactChart from '../../components/charts/CodingAgentImpactChart';
+import CodeCompletionImpactChart from '../../components/charts/CodeCompletionImpactChart';
 
 export default function CopilotImpactPage() {
   const { filteredData } = useMetricsData();
