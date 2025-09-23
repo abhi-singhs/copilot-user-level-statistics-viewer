@@ -316,6 +316,7 @@ export default function Home() {
             featureAdoptionData={featureAdoptionData}
             agentModeHeatmapData={agentModeHeatmapData}
             stats={stats}
+            metrics={metrics}
             onBack={() => setCurrentView('overview')}
           />
         )}
