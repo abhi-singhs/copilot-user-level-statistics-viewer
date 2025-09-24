@@ -364,47 +364,57 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
         {ideSummary.length > 0 ? (
           <ExpandableTableSection
             items={ideSummary}
-            initialCount={10}
-            buttonCollapsedLabel={(total) => `Show All ${total} IDEs`}
-            buttonExpandedLabel="Show Less"
+            initialCount={0}
+            defaultExpanded={false}
+            buttonCollapsedLabel={(total) => `Show Plugin Versions (${total.toLocaleString()} IDEs)`}
+            buttonExpandedLabel="Hide Plugin Versions"
+            buttonAlignment="left"
           >
-            {({ visibleItems }) => (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        IDE
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Plugin Versions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {visibleItems.map((row, index) => (
-                      <tr key={`${row.ide}-plugins`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{row.ide}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900">
-                            {row.pluginVersions.length > 0 ? (
-                              <ul className="list-disc list-inside space-y-1">
-                                {row.pluginVersions.map(plugin => (
-                                  <li key={`${row.ide}-${plugin}`}>{plugin}</li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <span className="text-gray-500">None</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {({ visibleItems, isExpanded }) => (
+              <>
+                {isExpanded ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            IDE
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Plugin Versions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {visibleItems.map((row, index) => (
+                          <tr key={`${row.ide}-plugins`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{row.ide}</div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-gray-900">
+                                {row.pluginVersions.length > 0 ? (
+                                  <ul className="list-disc list-inside space-y-1">
+                                    {row.pluginVersions.map(plugin => (
+                                      <li key={`${row.ide}-${plugin}`}>{plugin}</li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <span className="text-gray-500">None</span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-6 py-4 text-sm text-gray-600">
+                    Click &quot;Show Plugin Versions&quot; to view IDE plugin details associated with unknown models.
+                  </div>
+                )}
+              </>
             )}
           </ExpandableTableSection>
         ) : (
