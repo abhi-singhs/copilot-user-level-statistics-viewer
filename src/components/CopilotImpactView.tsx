@@ -3,6 +3,7 @@
 import React from 'react';
 import CodingAgentImpactChart from './charts/CodingAgentImpactChart';
 import CodeCompletionImpactChart from './charts/CodeCompletionImpactChart';
+import SectionHeader from './ui/SectionHeader';
 import type { AgentImpactData, CodeCompletionImpactData } from '../utils/metricsParser';
 
 interface CopilotImpactViewProps {
@@ -14,20 +15,12 @@ interface CopilotImpactViewProps {
 export default function CopilotImpactView({ agentImpactData, codeCompletionImpactData, onBack }: CopilotImpactViewProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Copilot Impact Analysis</h2>
-          <p className="text-gray-600 text-sm mt-1 max-w-2xl">
-            Analyze the impact and productivity gains from Copilot features, including code completion and agent mode contributions to your codebase.
-          </p>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md transition-colors"
-        >
-          ← Back to Overview
-        </button>
-      </div>
+      <SectionHeader
+        title="Copilot Impact Analysis"
+        description="Analyze the impact and productivity gains from Copilot features, including code completion and agent mode contributions to your codebase."
+        onBack={onBack}
+        className="mb-6"
+      />
 
       <div className="mb-12">       
         <CodingAgentImpactChart data={agentImpactData || []} />

@@ -2,6 +2,7 @@
 
 import { LanguageStats } from '../utils/metricsParser';
 import { useState } from 'react';
+import SectionHeader from './ui/SectionHeader';
 
 interface LanguagesViewProps {
   languages: LanguageStats[];
@@ -88,18 +89,12 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Programming Languages Analysis</h2>
-            <p className="text-gray-600 mt-1">Detailed breakdown of language usage patterns</p>
-          </div>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors"
-          >
-            ← Back to Overview
-          </button>
-        </div>
+        <SectionHeader
+          title="Programming Languages Analysis"
+          description="Detailed breakdown of language usage patterns"
+          onBack={onBack}
+          descriptionClassName="text-gray-600 mt-1"
+        />
       </div>
 
       {/* Summary Stats */}

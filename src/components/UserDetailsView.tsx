@@ -9,6 +9,7 @@ import { calculateDailyPRUAnalysis } from '../utils/metricsParser';
 import { SERVICE_VALUE_RATE, getModelMultiplier } from '../domain/modelConfig';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
 import { Pie, Bar, Chart } from 'react-chartjs-2';
+import SectionHeader from './ui/SectionHeader';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler);
 
@@ -868,18 +869,13 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{userLogin}</h2>
-            <p className="text-gray-600">User ID: {userId}</p>
-          </div>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors"
-          >
-            ← Back to Users
-          </button>
-        </div>
+        <SectionHeader
+          title={userLogin}
+          description={<p className="text-gray-600">User ID: {userId}</p>}
+          onBack={onBack}
+          titleClassName="text-2xl font-bold text-gray-900"
+          backButtonLabel="← Back to Users"
+        />
       </div>
 
       {/* Summary Stats */}

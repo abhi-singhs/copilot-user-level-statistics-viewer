@@ -2,6 +2,7 @@
 
 import { UserSummary, CopilotMetrics } from '../types/metrics';
 import { useState } from 'react';
+import SectionHeader from './ui/SectionHeader';
 
 interface UniqueUsersViewProps {
   users: UserSummary[];
@@ -78,17 +79,10 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Unique Users</h2>
-          </div>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-md transition-colors"
-          >
-            ← Back to Overview
-          </button>
-        </div>
+        <SectionHeader
+          title="Unique Users"
+          onBack={onBack}
+        />
       </div>
 
       {/* Summary Stats */}

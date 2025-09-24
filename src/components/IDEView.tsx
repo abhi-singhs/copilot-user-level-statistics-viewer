@@ -3,6 +3,7 @@
 import React from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
+import SectionHeader from './ui/SectionHeader';
 
 interface IDEStats {
   ide: string;
@@ -163,22 +164,12 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <button
-            onClick={onBack}
-            className="mr-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">IDE Statistics</h2>
-            <p className="text-gray-600">Overview of IDE usage across your organization</p>
-          </div>
-        </div>
-      </div>
+      <SectionHeader
+        title="IDE Statistics"
+        description="Overview of IDE usage across your organization."
+        onBack={onBack}
+        className="mb-6"
+      />
 
       <div className="space-y-8">
         {/* Summary Cards */}

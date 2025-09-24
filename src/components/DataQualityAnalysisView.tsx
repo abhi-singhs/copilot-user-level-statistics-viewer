@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
+import SectionHeader from './ui/SectionHeader';
 
 interface DataQualityUser {
   userLogin: string;
@@ -119,20 +120,13 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Data Quality Analysis</h2>
-          <p className="text-gray-600 text-sm mt-1">
-            Agent Mode users without Agent Mode feature reporting - potential data quality issues
-          </p>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md transition-colors"
-        >
-          ← Back to Overview
-        </button>
-      </div>
+      <SectionHeader
+        title="Data Quality Analysis"
+        description="Agent Mode users without Agent Mode feature reporting - potential data quality issues"
+        onBack={onBack}
+        className="mb-6"
+        descriptionClassName="text-gray-600 text-sm mt-1"
+      />
 
       <div className="mb-4">
         <div className="flex items-center space-x-4">

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import AgentModeHeatmapChart from './charts/AgentModeHeatmapChart';
 import MetricTile from './MetricTile';
+import SectionHeader from './ui/SectionHeader';
 import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricsParser';
 import type { MetricsStats, CopilotMetrics } from '../types/metrics';
 
@@ -139,20 +140,12 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Copilot Adoption Analysis</h2>
-          <p className="text-gray-600 text-sm mt-1 max-w-2xl">
-            Understand Copilot feature adoption patterns and Agent Mode usage intensity across days.
-          </p>
-        </div>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md transition-colors"
-        >
-          ← Back to Overview
-        </button>
-      </div>
+      <SectionHeader
+        title="Copilot Adoption Analysis"
+        description="Understand Copilot feature adoption patterns and Agent Mode usage intensity across days."
+        onBack={onBack}
+        className="mb-6"
+      />
 
       {/* User Adoption Metrics */}
       <div className="mb-8">
