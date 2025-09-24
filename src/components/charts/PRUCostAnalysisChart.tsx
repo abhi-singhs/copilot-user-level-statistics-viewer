@@ -185,7 +185,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         position: 'right' as const,
         title: {
           display: true,
-          text: viewType === 'cost' ? 'Cost ($)' : 
+      text: viewType === 'cost' ? 'Service Value ($)' : 
                 viewType === 'percentage' ? 'Percentage (%)' : 'PRUs'
         },
         beginAtZero: true,
@@ -198,7 +198,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
     plugins: {
       title: {
         display: true,
-        text: `PRU ${viewType === 'cost' ? 'Cost' : viewType === 'percentage' ? 'Usage' : 'Model'} Analysis`
+  text: `PRU ${viewType === 'cost' ? 'Service Value' : viewType === 'percentage' ? 'Usage' : 'Model'} Analysis`
       },
       legend: {
         position: 'top' as const,
@@ -281,7 +281,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-orange-600">${Math.round(maxCostDay.serviceValue * 100) / 100}</div>
-          <div className="text-sm text-gray-600">Peak Cost Day</div>
+          <div className="text-sm text-gray-600">Peak Service Value Day</div>
           <div className="text-xs text-gray-500">{new Date(maxCostDay.date).toLocaleDateString()}</div>
         </div>
         <div className="text-center">

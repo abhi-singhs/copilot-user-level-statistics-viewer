@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
 import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
+import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
+import { calculateDailyPRUAnalysis } from '../utils/metricsParser';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
 import { Pie, Bar, Chart } from 'react-chartjs-2';
 
@@ -23,7 +25,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
   const [isPluginTableExpanded, setIsPluginTableExpanded] = useState(false);
 
   // State for chart view types
-  const [pruAnalysisViewType, setPruAnalysisViewType] = useState<'cost' | 'percentage' | 'models'>('cost');
   const [pruModelChartType, setPruModelChartType] = useState<'area' | 'bar'>('area');
   const [agentHeatmapChartType, setAgentHeatmapChartType] = useState<'heatmap' | 'line' | 'bar'>('heatmap');
 
@@ -160,47 +161,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     return MODEL_MULTIPLIERS.unknown;
   };
 
-  // Calculate daily PRU analysis data for single user
-  const calculateUserPRUAnalysis = () => {
-    return userMetrics.map(metric => {
-      let pruRequests = 0;
-      let standardRequests = 0;
-      let totalPRUs = 0;
-      const modelPRUs = new Map<string, number>();
-
-      for (const modelFeature of metric.totals_by_model_feature) {
-        const model = modelFeature.model.toLowerCase();
-        const count = modelFeature.user_initiated_interaction_count;
-        const multiplier = getModelMultiplier(model);
-        const prus = count * multiplier;
-
-        totalPRUs += prus;
-        const currentModelPRUs = modelPRUs.get(model) || 0;
-        modelPRUs.set(model, currentModelPRUs + prus);
-
-        if (multiplier === 0) {
-          standardRequests += count;
-        } else {
-          pruRequests += count;
-        }
-      }
-
-      const total = pruRequests + standardRequests;
-      const topModelEntry = Array.from(modelPRUs.entries()).sort((a, b) => b[1] - a[1])[0];
-
-      return {
-        date: metric.day,
-        pruRequests,
-        standardRequests,
-        pruPercentage: total > 0 ? Math.round((pruRequests / total) * 100 * 100) / 100 : 0,
-        totalPRUs: Math.round(totalPRUs * 100) / 100,
-        serviceValue: Math.round(totalPRUs * 0.04 * 100) / 100,
-        topModel: topModelEntry ? topModelEntry[0] : 'unknown',
-        topModelPRUs: topModelEntry ? Math.round(topModelEntry[1] * 100) / 100 : 0
-      };
-    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  };
-
   // Calculate daily model usage data for single user
   const calculateUserModelUsage = () => {
     return userMetrics.map(metric => {
@@ -284,7 +244,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
-  const userPRUAnalysisData = calculateUserPRUAnalysis();
+  const userPRUAnalysisData = calculateDailyPRUAnalysis(userMetrics);
   const userModelUsageData = calculateUserModelUsage();
   const userAgentHeatmapData = calculateUserAgentModeHeatmap();
 
@@ -723,172 +683,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         },
         beginAtZero: true,
         stacked: true,
-      }
-    }
-  };
-
-  // PRU Analysis Chart functions
-  const getPRUAnalysisChartData = () => {
-    switch (pruAnalysisViewType) {
-      case 'cost':
-        return {
-          labels: userPRUAnalysisData.map(d => new Date(d.date).toLocaleDateString()),
-          datasets: [
-            {
-              type: 'bar' as const,
-              label: 'PRU Requests',
-              data: userPRUAnalysisData.map(d => d.pruRequests),
-              backgroundColor: 'rgba(239, 68, 68, 0.6)',
-              borderColor: 'rgb(239, 68, 68)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              type: 'line' as const,
-              label: 'Service Value ($)',
-              data: userPRUAnalysisData.map(d => d.serviceValue),
-              backgroundColor: 'rgba(147, 51, 234, 0.2)',
-              borderColor: 'rgb(147, 51, 234)',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.4,
-              yAxisID: 'y1'
-            }
-          ]
-        };
-      case 'percentage':
-        return {
-          labels: userPRUAnalysisData.map(d => new Date(d.date).toLocaleDateString()),
-          datasets: [
-            {
-              type: 'bar' as const,
-              label: 'PRU Requests',
-              data: userPRUAnalysisData.map(d => d.pruRequests),
-              backgroundColor: 'rgba(239, 68, 68, 0.6)',
-              borderColor: 'rgb(239, 68, 68)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              type: 'bar' as const,
-              label: 'Standard Requests',
-              data: userPRUAnalysisData.map(d => d.standardRequests),
-              backgroundColor: 'rgba(34, 197, 94, 0.6)',
-              borderColor: 'rgb(34, 197, 94)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              type: 'line' as const,
-              label: 'PRU Percentage (%)',
-              data: userPRUAnalysisData.map(d => d.pruPercentage),
-              backgroundColor: 'rgba(59, 130, 246, 0.2)',
-              borderColor: 'rgb(59, 130, 246)',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.4,
-              yAxisID: 'y1'
-            }
-          ]
-        };
-      case 'models':
-        return {
-          labels: userPRUAnalysisData.map(d => new Date(d.date).toLocaleDateString()),
-          datasets: [
-            {
-              type: 'bar' as const,
-              label: 'Total PRUs',
-              data: userPRUAnalysisData.map(d => d.totalPRUs),
-              backgroundColor: 'rgba(168, 85, 247, 0.6)',
-              borderColor: 'rgb(168, 85, 247)',
-              borderWidth: 1,
-              yAxisID: 'y'
-            },
-            {
-              type: 'line' as const,
-              label: 'Top Model PRUs',
-              data: userPRUAnalysisData.map(d => d.topModelPRUs),
-              backgroundColor: 'rgba(245, 158, 11, 0.2)',
-              borderColor: 'rgb(245, 158, 11)',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.4,
-              yAxisID: 'y'
-            }
-          ]
-        };
-      default:
-        return { labels: [], datasets: [] };
-    }
-  };
-
-  const pruAnalysisChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: 'index' as const,
-      intersect: false,
-    },
-    scales: {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Date'
-        }
-      },
-      y: {
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-        title: {
-          display: true,
-          text: pruAnalysisViewType === 'cost' ? 'Number of Requests' : 
-                pruAnalysisViewType === 'percentage' ? 'Number of Requests' : 'PRUs'
-        },
-        beginAtZero: true
-      },
-      y1: {
-        type: 'linear' as const,
-        display: true,
-        position: 'right' as const,
-        title: {
-          display: true,
-          text: pruAnalysisViewType === 'cost' ? 'Cost ($)' : 
-                pruAnalysisViewType === 'percentage' ? 'Percentage (%)' : 'PRUs'
-        },
-        beginAtZero: true,
-        max: pruAnalysisViewType === 'percentage' ? 100 : undefined,
-        grid: {
-          drawOnChartArea: false,
-        },
-      }
-    },
-    plugins: {
-      title: {
-        display: true,
-        text: `PRU ${pruAnalysisViewType === 'cost' ? 'Cost' : pruAnalysisViewType === 'percentage' ? 'Usage' : 'Model'} Analysis`
-      },
-      legend: {
-        position: 'top' as const,
-      },
-      tooltip: {
-        callbacks: {
-          afterBody: function(context: TooltipItem<'bar' | 'line'>[]) {
-            const dataIndex = context[0].dataIndex;
-            const dayData = userPRUAnalysisData[dataIndex];
-            return [
-              '',
-              `PRU Requests: ${dayData.pruRequests}`,
-              `Standard Requests: ${dayData.standardRequests}`,
-              `PRU Percentage: ${dayData.pruPercentage}%`,
-              `Total PRUs: ${dayData.totalPRUs}`,
-              `Service Value: $${dayData.serviceValue}`,
-              `Top Model: ${dayData.topModel}`,
-              `Top Model PRUs: ${dayData.topModelPRUs}`
-            ];
-          }
-        }
       }
     }
   };
@@ -1434,127 +1228,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
 
       {/* PRU Service Value Analysis */}
       {userPRUAnalysisData.some(d => d.pruRequests > 0 || d.standardRequests > 0) && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">PRU Service Value Analysis</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPruAnalysisViewType('cost')}
-                className={`px-3 py-1 text-sm rounded ${
-                  pruAnalysisViewType === 'cost' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Service Value
-              </button>
-              <button
-                onClick={() => setPruAnalysisViewType('percentage')}
-                className={`px-3 py-1 text-sm rounded ${
-                  pruAnalysisViewType === 'percentage' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Usage %
-              </button>
-              <button
-                onClick={() => setPruAnalysisViewType('models')}
-                className={`px-3 py-1 text-sm rounded ${
-                  pruAnalysisViewType === 'models' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Models
-              </button>
-            </div>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-            {(() => {
-              const totalPRUs = userPRUAnalysisData.reduce((sum, d) => sum + d.totalPRUs, 0);
-              const totalCost = userPRUAnalysisData.reduce((sum, d) => sum + d.serviceValue, 0);
-              const totalPRURequests = userPRUAnalysisData.reduce((sum, d) => sum + d.pruRequests, 0);
-              const totalStandardRequests = userPRUAnalysisData.reduce((sum, d) => sum + d.standardRequests, 0);
-              const totalRequests = totalPRURequests + totalStandardRequests;
-              const avgPRUPercentage = userPRUAnalysisData.length > 0 ? userPRUAnalysisData.reduce((sum, d) => sum + d.pruPercentage, 0) / userPRUAnalysisData.length : 0;
-              const maxCostDay = userPRUAnalysisData.reduce((max, d) => d.serviceValue > max.serviceValue ? d : max, userPRUAnalysisData[0] || {serviceValue: 0, date: ''});
-              const topModels = [...new Set(userPRUAnalysisData.map(d => d.topModel))].filter(m => m !== 'unknown');
-
-              return (
-                <>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{Math.round(totalPRUs * 100) / 100}</div>
-                    <div className="text-sm text-gray-600">Total PRUs</div>
-                    <div className="text-xs text-gray-500">{userPRUAnalysisData.length > 0 ? Math.round((totalPRUs / userPRUAnalysisData.length) * 100) / 100 : 0}/day avg</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">${Math.round(totalCost * 100) / 100}</div>
-                    <div className="text-sm text-gray-600">Service Value</div>
-                    <div className="text-xs text-gray-500">${userPRUAnalysisData.length > 0 ? Math.round((totalCost / userPRUAnalysisData.length) * 100) / 100 : 0}/day avg</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{Math.round(avgPRUPercentage * 100) / 100}%</div>
-                    <div className="text-sm text-gray-600">Avg PRU Usage</div>
-                    <div className="text-xs text-gray-500">{totalPRURequests}/{totalRequests} requests</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">${Math.round(maxCostDay.serviceValue * 100) / 100}</div>
-                    <div className="text-sm text-gray-600">Peak Cost Day</div>
-                    <div className="text-xs text-gray-500">{maxCostDay.date ? new Date(maxCostDay.date).toLocaleDateString() : 'N/A'}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{topModels.length}</div>
-                    <div className="text-sm text-gray-600">Premium Models</div>
-                    <div className="text-xs text-gray-500">Used in period</div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Chart */}
-          <div className="h-96">
-            <Chart type="bar" data={getPRUAnalysisChartData()} options={pruAnalysisChartOptions} />
-          </div>
-
-          {/* Cost Breakdown */}
-          {(() => {
-            const totalCost = userPRUAnalysisData.reduce((sum, d) => sum + d.serviceValue, 0);
-            const totalPRURequests = userPRUAnalysisData.reduce((sum, d) => sum + d.pruRequests, 0);
-            const avgPRUPercentage = userPRUAnalysisData.length > 0 ? userPRUAnalysisData.reduce((sum, d) => sum + d.pruPercentage, 0) / userPRUAnalysisData.length : 0;
-            const topModels = [...new Set(userPRUAnalysisData.map(d => d.topModel))].filter(m => m !== 'unknown');
-
-            return (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <h4 className="font-semibold text-purple-800 mb-2">PRU Efficiency</h4>
-                  <p className="text-sm text-purple-700">
-                    Average cost per PRU request: ${totalPRURequests > 0 ? Math.round((totalCost / totalPRURequests) * 100) / 100 : 0}.
-                    {avgPRUPercentage > 30 ? ' High premium model usage.' : avgPRUPercentage > 15 ? ' Moderate premium usage.' : ' Primarily standard models.'}
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-800 mb-2">Cost Optimization</h4>
-                  <p className="text-sm text-green-700">
-                    {avgPRUPercentage > 50 ? 'Consider reviewing premium model usage for optimization opportunities.' : 
-                     avgPRUPercentage > 25 ? 'Balanced usage of premium and standard models.' :
-                     'Efficient use of included models minimizes additional costs.'}
-                  </p>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-semibold text-blue-800 mb-2">Model Insights</h4>
-                  <p className="text-sm text-blue-700">
-                    Top premium models used: {topModels.slice(0, 3).join(', ') || 'None'}.
-                    {topModels.length > 3 && ` +${topModels.length - 3} more`}
-                  </p>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        <PRUCostAnalysisChart data={userPRUAnalysisData} />
       )}
 
       {/* Daily PRU vs Standard Model Usage */}
