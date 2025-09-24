@@ -3,6 +3,7 @@
 import { LanguageStats } from '../utils/metricsParser';
 import { useState } from 'react';
 import SectionHeader from './ui/SectionHeader';
+import ExpandableTableSection from './ui/ExpandableTableSection';
 import DashboardStatsCard from './ui/DashboardStatsCard';
 
 interface LanguagesViewProps {
@@ -16,9 +17,6 @@ type SortDirection = 'asc' | 'desc';
 export default function LanguagesView({ languages, onBack }: LanguagesViewProps) {
   const [sortField, setSortField] = useState<SortField>('totalEngagements');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [expandedGenerations, setExpandedGenerations] = useState(false);
-  const [expandedUsers, setExpandedUsers] = useState(false);
-  const [expandedFull, setExpandedFull] = useState(false);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -82,10 +80,6 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
 
   // Determine how many items to show
   const maxItemsToShow = 10;
-  const generationsToShow = expandedGenerations ? languagesByGenerations : languagesByGenerations.slice(0, maxItemsToShow);
-  const usersToShow = expandedUsers ? languagesByUsers : languagesByUsers.slice(0, maxItemsToShow);
-  const fullTableToShow = expandedFull ? sortedLanguages : sortedLanguages.slice(0, maxItemsToShow);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -152,250 +146,248 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
         {/* Languages by Number of Generations */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Languages by Code Generations</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Language
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Generations
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acceptance Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {generationsToShow.map((lang, index) => {
-                  const acceptanceRate = lang.totalGenerations > 0 
-                    ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
-                    : '0.0';
-                  
-                  return (
-                    <tr key={lang.language} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 mr-3">
-                            <div className="h-8 w-8 rounded bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                              {index + 1}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{lang.language}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{lang.totalGenerations.toLocaleString()}</div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{acceptanceRate}%</div>
-                      </td>
+          <ExpandableTableSection
+            items={languagesByGenerations}
+            initialCount={maxItemsToShow}
+            buttonCollapsedLabel={(total) => `Show All ${total} Languages`}
+            buttonExpandedLabel="Show Less"
+          >
+            {({ visibleItems }) => (
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Language
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Generations
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acceptance Rate
+                      </th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {languagesByGenerations.length > maxItemsToShow && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setExpandedGenerations(!expandedGenerations)}
-                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-              >
-                {expandedGenerations ? 'Show Less' : `Show All ${languagesByGenerations.length} Languages`}
-              </button>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {visibleItems.map((lang) => {
+                      const acceptanceRate = lang.totalGenerations > 0 
+                        ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
+                        : '0.0';
+                      const globalRank = languagesByGenerations.findIndex((candidate) => candidate === lang) + 1;
+
+                      return (
+                        <tr key={lang.language} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-8 w-8 mr-3">
+                                <div className="h-8 w-8 rounded bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                  {globalRank}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{lang.language}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{lang.totalGenerations.toLocaleString()}</div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{acceptanceRate}%</div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ExpandableTableSection>
         </div>
 
         {/* Languages by Number of Users */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Languages by Number of Users</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Language
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Users
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Avg Engagements
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {usersToShow.map((lang, index) => {
-                  const avgEngagements = lang.uniqueUsers > 0 
-                    ? (lang.totalEngagements / lang.uniqueUsers).toFixed(1)
-                    : '0.0';
-                  
-                  return (
-                    <tr key={lang.language} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-8 w-8 mr-3">
-                            <div className="h-8 w-8 rounded bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold">
-                              {index + 1}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{lang.language}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{lang.uniqueUsers.toLocaleString()}</div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{avgEngagements}</div>
-                      </td>
+          <ExpandableTableSection
+            items={languagesByUsers}
+            initialCount={maxItemsToShow}
+            buttonCollapsedLabel={(total) => `Show All ${total} Languages`}
+            buttonExpandedLabel="Show Less"
+          >
+            {({ visibleItems }) => (
+              <div className="overflow-x-auto">
+                <table className="w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Language
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Users
+                      </th>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avg Engagements
+                      </th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {languagesByUsers.length > maxItemsToShow && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setExpandedUsers(!expandedUsers)}
-                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-              >
-                {expandedUsers ? 'Show Less' : `Show All ${languagesByUsers.length} Languages`}
-              </button>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {visibleItems.map((lang) => {
+                      const avgEngagements = lang.uniqueUsers > 0 
+                        ? (lang.totalEngagements / lang.uniqueUsers).toFixed(1)
+                        : '0.0';
+                      const globalRank = languagesByUsers.findIndex((candidate) => candidate === lang) + 1;
+
+                      return (
+                        <tr key={lang.language} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-8 w-8 mr-3">
+                                <div className="h-8 w-8 rounded bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold">
+                                  {globalRank}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{lang.language}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{lang.uniqueUsers.toLocaleString()}</div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{avgEngagements}</div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ExpandableTableSection>
         </div>
       </div>
 
       {/* Full Languages Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Languages Breakdown</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('language')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Language
-                    {getSortIcon('language')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('totalEngagements')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Total Engagements
-                    {getSortIcon('totalEngagements')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('totalGenerations')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Generations
-                    {getSortIcon('totalGenerations')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('totalAcceptances')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Acceptances
-                    {getSortIcon('totalAcceptances')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('uniqueUsers')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    Unique Users
-                    {getSortIcon('uniqueUsers')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button
-                    onClick={() => handleSort('locAdded')}
-                    className="flex items-center hover:text-gray-700 focus:outline-none"
-                  >
-                    LOC Added
-                    {getSortIcon('locAdded')}
-                  </button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button onClick={() => handleSort('locDeleted')} className="flex items-center hover:text-gray-700 focus:outline-none">LOC Deleted {getSortIcon('locDeleted')}</button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button onClick={() => handleSort('locSuggestedToAdd')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Add {getSortIcon('locSuggestedToAdd')}</button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <button onClick={() => handleSort('locSuggestedToDelete')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Delete {getSortIcon('locSuggestedToDelete')}</button>
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acceptance Rate
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {fullTableToShow.map((lang) => {
-                const acceptanceRate = lang.totalGenerations > 0 
-                  ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
-                  : '0.0';
-                
-                return (
-                  <tr key={lang.language} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{lang.language}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.totalEngagements.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.totalGenerations.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.totalAcceptances.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{lang.uniqueUsers.toLocaleString()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locAdded.toLocaleString()}</div></td>
-                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locDeleted.toLocaleString()}</div></td>
-                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToAdd.toLocaleString()}</div></td>
-                    <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToDelete.toLocaleString()}</div></td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{acceptanceRate}%</div>
-                    </td>
+        <ExpandableTableSection
+          items={sortedLanguages}
+          initialCount={maxItemsToShow}
+          buttonCollapsedLabel={(total) => `Show All ${total} Languages`}
+          buttonExpandedLabel="Show Less"
+        >
+          {({ visibleItems }) => (
+            <div className="overflow-x-auto">
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('language')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        Language
+                        {getSortIcon('language')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('totalEngagements')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        Total Engagements
+                        {getSortIcon('totalEngagements')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('totalGenerations')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        Generations
+                        {getSortIcon('totalGenerations')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('totalAcceptances')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        Acceptances
+                        {getSortIcon('totalAcceptances')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('uniqueUsers')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        Unique Users
+                        {getSortIcon('uniqueUsers')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={() => handleSort('locAdded')}
+                        className="flex items-center hover:text-gray-700 focus:outline-none"
+                      >
+                        LOC Added
+                        {getSortIcon('locAdded')}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button onClick={() => handleSort('locDeleted')} className="flex items-center hover:text-gray-700 focus:outline-none">LOC Deleted {getSortIcon('locDeleted')}</button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button onClick={() => handleSort('locSuggestedToAdd')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Add {getSortIcon('locSuggestedToAdd')}</button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button onClick={() => handleSort('locSuggestedToDelete')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Delete {getSortIcon('locSuggestedToDelete')}</button>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acceptance Rate
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {visibleItems.map((lang) => {
+                    const acceptanceRate = lang.totalGenerations > 0 
+                      ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
+                      : '0.0';
 
-        {sortedLanguages.length > maxItemsToShow && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setExpandedFull(!expandedFull)}
-              className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-            >
-              {expandedFull ? 'Show Less' : `Show All ${sortedLanguages.length} Languages`}
-            </button>
-          </div>
-        )}
+                    return (
+                      <tr key={lang.language} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{lang.language}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{lang.totalEngagements.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{lang.totalGenerations.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{lang.totalAcceptances.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{lang.uniqueUsers.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locAdded.toLocaleString()}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locDeleted.toLocaleString()}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToAdd.toLocaleString()}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToDelete.toLocaleString()}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{acceptanceRate}%</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </ExpandableTableSection>
 
         {languages.length === 0 && (
           <div className="text-center py-8">

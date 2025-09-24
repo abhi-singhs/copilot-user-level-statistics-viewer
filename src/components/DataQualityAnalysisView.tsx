@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import SectionHeader from './ui/SectionHeader';
+import ExpandableTableSection from './ui/ExpandableTableSection';
 
 interface DataQualityUser {
   userLogin: string;
@@ -18,8 +18,6 @@ interface DataQualityAnalysisViewProps {
 }
 
 export default function DataQualityAnalysisView({ metrics, onBack }: DataQualityAnalysisViewProps) {
-  const [isTableExpanded, setIsTableExpanded] = useState(false);
-
   // Analyze data quality - find users with used_agent=true but missing chat_panel_agent_mode in features
   const analyzeDataQuality = (): DataQualityUser[] => {
     const userModeMap = new Map<string, { 
@@ -107,9 +105,6 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
   };
 
   const usersWithDataQualityIssues = analyzeDataQuality();
-  const maxItemsToShow = 10;
-  const usersToShow = isTableExpanded ? usersWithDataQualityIssues : usersWithDataQualityIssues.slice(0, maxItemsToShow);
-
   const formatModes = (modes: string[]): string => {
     return modes.join(', ');
   };
@@ -153,67 +148,65 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
           <p className="text-gray-600">All agent users have proper Agent Mode feature reporting</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Used Agent Flag
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Chat Modes Used
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Plugins Used
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {usersToShow.map((user, index) => (
-                <tr key={`${user.userId}-${user.userLogin}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{user.userLogin}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{user.userId}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                      {user.usedAgent ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {user.usedModes.length > 0 ? formatModes(user.usedModes) : 'None'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatPlugins(user.pluginsUsed)}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {usersWithDataQualityIssues.length > maxItemsToShow && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setIsTableExpanded(!isTableExpanded)}
-                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-              >
-                {isTableExpanded ? 'Show Less' : `Show All ${usersWithDataQualityIssues.length} Users`}
-              </button>
+        <ExpandableTableSection
+          items={usersWithDataQualityIssues}
+          initialCount={10}
+          buttonCollapsedLabel={(total) => `Show All ${total} Users`}
+          buttonExpandedLabel="Show Less"
+        >
+          {({ visibleItems }) => (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      User Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      User ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Used Agent Flag
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Chat Modes Used
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Plugins Used
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {visibleItems.map((user, index) => (
+                    <tr key={`${user.userId}-${user.userLogin}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{user.userLogin}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{user.userId}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          {user.usedAgent ? 'Yes' : 'No'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {user.usedModes.length > 0 ? formatModes(user.usedModes) : 'None'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {formatPlugins(user.pluginsUsed)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
+        </ExpandableTableSection>
       )}
 
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">

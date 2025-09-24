@@ -5,6 +5,7 @@ import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import AgentModeHeatmapChart from './charts/AgentModeHeatmapChart';
 import MetricTile from './ui/MetricTile';
 import SectionHeader from './ui/SectionHeader';
+import ExpandableTableSection from './ui/ExpandableTableSection';
 import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricsParser';
 import type { MetricsStats, CopilotMetrics } from '../types/metrics';
 
@@ -28,10 +29,6 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
   const [jbError, setJbError] = useState<string | null>(null);
   const [jbLoading, setJbLoading] = useState<boolean>(false);
   const [expandedUsernames, setExpandedUsernames] = useState<Set<string>>(new Set());
-  // Collapsible state for outdated plugins table (progressive disclosure)
-  const [isOutdatedPluginsExpanded, setIsOutdatedPluginsExpanded] = useState(false);
-  // Collapsible state for latest plugin versions table (show 2 by default)
-  const [isLatestVersionsExpanded, setIsLatestVersionsExpanded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -239,78 +236,72 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
               Plugin versions that are not among the latest 8 stable releases. Users with outdated plugins may be missing important features and security updates.
             </p>
             {outdatedPlugins.length > 0 ? (
-            <div className="overflow-x-auto border border-gray-200 rounded-md">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-red-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Plugin Version</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Release Date</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Number of Users</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700">Usernames</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {(
-                    isOutdatedPluginsExpanded
-                      ? outdatedPlugins
-                      : outdatedPlugins.slice(0, 5)
-                  ).map((plugin) => {
-                    const cdate = jetbrainsVersionDateMap.get(plugin.version);
-                    const releaseDate = cdate ? formatDate(cdate) : 'N/A';
-                    return (
-                      <tr key={plugin.version} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 font-mono text-gray-900 whitespace-nowrap">{plugin.version}</td>
-                        <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{releaseDate}</td>
-                        <td className="px-4 py-2 text-center">{plugin.userCount}</td>
-                        <td className="px-4 py-2">
-                          <div className="max-w-md">
-                            {plugin.usernames.length <= 3 ? (
-                              <span className="text-xs text-gray-600">
-                                {plugin.usernames.join(', ')}
-                              </span>
-                            ) : (
-                              <div>
-                                <span className="text-xs text-gray-600">
-                                  {expandedUsernames.has(plugin.version) 
-                                    ? plugin.usernames.join(', ')
-                                    : `${plugin.usernames.slice(0, 3).join(', ')}...`
-                                  }
-                                </span>
-                                <button
-                                  onClick={() => {
-                                    const newExpanded = new Set(expandedUsernames);
-                                    if (expandedUsernames.has(plugin.version)) {
-                                      newExpanded.delete(plugin.version);
-                                    } else {
-                                      newExpanded.add(plugin.version);
-                                    }
-                                    setExpandedUsernames(newExpanded);
-                                  }}
-                                  className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
-                                >
-                                  {expandedUsernames.has(plugin.version) ? 'Show Less' : `Show All ${plugin.usernames.length}`}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
+            <ExpandableTableSection
+              items={outdatedPlugins}
+              initialCount={5}
+              buttonCollapsedLabel={(total) => `Show All ${total} Versions`}
+              buttonExpandedLabel="Show Less"
+            >
+              {({ visibleItems }) => (
+                <div className="overflow-x-auto border border-gray-200 rounded-md">
+                  <table className="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead className="bg-red-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-medium text-gray-700">Plugin Version</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-700">Release Date</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-700">Number of Users</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-700">Usernames</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {outdatedPlugins.length > 5 && (
-                <div className="mt-4 text-center">
-                  <button
-                    onClick={() => setIsOutdatedPluginsExpanded(e => !e)}
-                    className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-                    aria-expanded={isOutdatedPluginsExpanded}
-                  >
-                    {isOutdatedPluginsExpanded ? 'Show Less' : `Show All ${outdatedPlugins.length} Versions`}
-                  </button>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 bg-white">
+                      {visibleItems.map((plugin) => {
+                        const cdate = jetbrainsVersionDateMap.get(plugin.version);
+                        const releaseDate = cdate ? formatDate(cdate) : 'N/A';
+                        return (
+                          <tr key={plugin.version} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 font-mono text-gray-900 whitespace-nowrap">{plugin.version}</td>
+                            <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{releaseDate}</td>
+                            <td className="px-4 py-2 text-center">{plugin.userCount}</td>
+                            <td className="px-4 py-2">
+                              <div className="max-w-md">
+                                {plugin.usernames.length <= 3 ? (
+                                  <span className="text-xs text-gray-600">
+                                    {plugin.usernames.join(', ')}
+                                  </span>
+                                ) : (
+                                  <div>
+                                    <span className="text-xs text-gray-600">
+                                      {expandedUsernames.has(plugin.version) 
+                                        ? plugin.usernames.join(', ')
+                                        : `${plugin.usernames.slice(0, 3).join(', ')}...`
+                                      }
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        const newExpanded = new Set(expandedUsernames);
+                                        if (expandedUsernames.has(plugin.version)) {
+                                          newExpanded.delete(plugin.version);
+                                        } else {
+                                          newExpanded.add(plugin.version);
+                                        }
+                                        setExpandedUsernames(newExpanded);
+                                      }}
+                                      className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                                    >
+                                      {expandedUsernames.has(plugin.version) ? 'Show Less' : `Show All ${plugin.usernames.length}`}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
-            </div>
+            </ExpandableTableSection>
           ) : (
             <div className="p-4 bg-green-50 border border-green-200 rounded-md">
               <div className="text-green-800 font-medium">✓ All users are on recent plugin versions!</div>
@@ -323,52 +314,48 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
         {/* Latest 8 Versions Table (Collapsible: show 2 by default) */}
         <div className="mb-8">
           <h4 className="text-md font-semibold text-gray-800 mb-3">Latest 8 Plugin Versions</h4>
-          <div className="overflow-x-auto border border-gray-200 rounded-md">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium text-gray-700">Version</th>
-                  <th className="px-4 py-2 text-left font-medium text-gray-700">Release Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {jbLoading && (
-                  <tr>
-                    <td className="px-4 py-3 text-gray-500" colSpan={2}>Loading…</td>
-                  </tr>
-                )}
-                {jbError && !jbLoading && (
-                  <tr>
-                    <td className="px-4 py-3 text-red-600" colSpan={2}>Failed to load plugin versions: {jbError}</td>
-                  </tr>
-                )}
-                {!jbLoading && !jbError && jetbrainsUpdates && jetbrainsUpdates.length === 0 && (
-                  <tr>
-                    <td className="px-4 py-3 text-gray-500" colSpan={2}>No version data available.</td>
-                  </tr>
-                )}
-                {!jbLoading && !jbError && (
-                  (isLatestVersionsExpanded ? latestEightUpdates : latestEightUpdates.slice(0, 2)).map(update => (
-                    <tr key={update.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 font-mono text-gray-900 whitespace-nowrap">{update.version}</td>
-                      <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{formatDate(update.cdate)}</td>
+          <ExpandableTableSection
+            items={latestEightUpdates}
+            initialCount={2}
+            buttonCollapsedLabel={(total) => `Show All ${total} Versions`}
+            buttonExpandedLabel="Show Less"
+          >
+            {({ visibleItems }) => (
+              <div className="overflow-x-auto border border-gray-200 rounded-md">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium text-gray-700">Version</th>
+                      <th className="px-4 py-2 text-left font-medium text-gray-700">Release Date</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-            {!jbLoading && !jbError && latestEightUpdates.length > 2 && (
-              <div className="mt-4 text-center">
-                <button
-                  onClick={() => setIsLatestVersionsExpanded(e => !e)}
-                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
-                  aria-expanded={isLatestVersionsExpanded}
-                >
-                  {isLatestVersionsExpanded ? 'Show Less' : `Show All ${latestEightUpdates.length} Versions`}
-                </button>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {jbLoading && (
+                      <tr>
+                        <td className="px-4 py-3 text-gray-500" colSpan={2}>Loading…</td>
+                      </tr>
+                    )}
+                    {jbError && !jbLoading && (
+                      <tr>
+                        <td className="px-4 py-3 text-red-600" colSpan={2}>Failed to load plugin versions: {jbError}</td>
+                      </tr>
+                    )}
+                    {!jbLoading && !jbError && jetbrainsUpdates && jetbrainsUpdates.length === 0 && (
+                      <tr>
+                        <td className="px-4 py-3 text-gray-500" colSpan={2}>No version data available.</td>
+                      </tr>
+                    )}
+                    {!jbLoading && !jbError && visibleItems.map(update => (
+                      <tr key={update.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 font-mono text-gray-900 whitespace-nowrap">{update.version}</td>
+                        <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{formatDate(update.cdate)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
-          </div>
+          </ExpandableTableSection>
         </div>
 
         {/* Insights and Recommendations */}
