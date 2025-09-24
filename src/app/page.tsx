@@ -55,6 +55,7 @@ export default function Home() {
   } | null>(null);
   const [dateRangeFilter, setDateRangeFilter] = useState<DateRangeFilter>('all');
   const [removeUnknownLanguages, setRemoveUnknownLanguages] = useState<boolean>(false);
+  const [enterpriseName, setEnterpriseName] = useState<string | null>(null);
 
   // Calculate filtered data based on date range and language filters
   const filteredData = useMemo(() => {
@@ -172,6 +173,18 @@ export default function Home() {
       const fileContent = await file.text();
       const parsedMetrics = parseMetricsFile(fileContent);
       const calculatedStats = calculateStats(parsedMetrics);
+
+      const firstMetric = parsedMetrics[0];
+      if (firstMetric) {
+        const loginSuffix = firstMetric.user_login?.includes('_')
+          ? firstMetric.user_login.split('_').pop()?.trim()
+          : undefined;
+        const enterpriseId = firstMetric.enterprise_id.trim();
+        const derivedEnterpriseName = loginSuffix && loginSuffix.length > 0 ? loginSuffix : (enterpriseId.length > 0 ? enterpriseId : null);
+        setEnterpriseName(derivedEnterpriseName ?? null);
+      } else {
+        setEnterpriseName(null);
+      }
       
       setRawMetrics(parsedMetrics);
       setOriginalStats(calculatedStats);
@@ -190,6 +203,7 @@ export default function Home() {
     setSelectedUser(null);
     setDateRangeFilter('all');
     setRemoveUnknownLanguages(false);
+    setEnterpriseName(null);
   };
 
   const handleDateRangeChange = (filter: DateRangeFilter) => {
@@ -367,21 +381,18 @@ export default function Home() {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl text-gray-900">
                   <span className="font-semibold">Metrics Overview</span> - Data covers the period from <strong>{formatDate(stats.reportStartDay)}</strong> to <strong>{formatDate(stats.reportEndDay)}</strong>
+                  {enterpriseName && (
+                    <>
+                      {' '}for Enterprise <strong>{enterpriseName}</strong>
+                    </>
+                  )}
                 </h2>
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => setCurrentView('dataQuality')}
-                    className="px-4 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-md transition-colors"
-                  >
-                    Data Quality Analysis
-                  </button>
-                  <button
-                    onClick={resetData}
-                    className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                  >
-                    Upload New File
-                  </button>
-                </div>
+                <button
+                  onClick={resetData}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                >
+                  Upload New File
+                </button>
               </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
@@ -489,6 +500,14 @@ export default function Home() {
                 removeUnknownLanguages={removeUnknownLanguages}
                 onRemoveUnknownLanguagesChange={handleRemoveUnknownLanguagesChange}
               />
+              <div className="mt-4">
+                <button
+                  onClick={() => setCurrentView('dataQuality')}
+                  className="w-full px-4 py-2 text-sm font-medium text-yellow-600 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-md transition-colors"
+                >
+                  Data Quality Analysis
+                </button>
+              </div>
             </div>
           </div>
         )}
