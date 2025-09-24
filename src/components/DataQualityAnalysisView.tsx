@@ -1,8 +1,31 @@
 'use client';
 
+import { useMemo } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  TooltipItem
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import { CopilotMetrics } from '../types/metrics';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface DataQualityUser {
   userLogin: string;
@@ -17,22 +40,44 @@ interface DataQualityAnalysisViewProps {
   onBack: () => void;
 }
 
+interface UnknownModelTrendPoint {
+  day: string;
+  count: number;
+}
+
+interface IdeSummaryRow {
+  ide: string;
+  occurrences: number;
+  uniqueUsers: number;
+  pluginVersions: string[];
+}
+
 export default function DataQualityAnalysisView({ metrics, onBack }: DataQualityAnalysisViewProps) {
-  // Analyze data quality - find users with used_agent=true but missing chat_panel_agent_mode in features
-  const analyzeDataQuality = (): DataQualityUser[] => {
-    const userModeMap = new Map<string, { 
-      userId: number; 
-      userLogin: string; 
-      modes: Set<string>; 
+  const {
+    usersWithDataQualityIssues,
+    unknownModelTrend,
+    ideSummary,
+    totalUnknownModelEntries
+  } = useMemo(() => {
+    const userModeMap = new Map<string, {
+      userId: number;
+      userLogin: string;
+      modes: Set<string>;
       usedAgent: boolean;
       hasAgentModeFeature: boolean;
-      plugins: Map<string, string>; // plugin name -> latest version
+      plugins: Map<string, string>;
     }>();
 
-    // Scan through all metrics to collect user modes and agent usage
+    const unknownCountsByDay = new Map<string, number>();
+    const ideAggregations = new Map<string, {
+      occurrences: number;
+      users: Set<number>;
+      pluginVersions: Set<string>;
+    }>();
+
     metrics.forEach(metric => {
       const key = `${metric.user_id}_${metric.user_login}`;
-      
+
       if (!userModeMap.has(key)) {
         userModeMap.set(key, {
           userId: metric.user_id,
@@ -46,12 +91,10 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
 
       const userEntry = userModeMap.get(key)!;
 
-      // Track if user has used_agent flag set to true
       if (metric.used_agent) {
         userEntry.usedAgent = true;
       }
 
-      // Collect all features/modes from totals_by_feature
       metric.totals_by_feature?.forEach(feature => {
         const featureName = feature.feature;
         if (featureName && [
@@ -64,15 +107,13 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
           'agent_edit'
         ].includes(featureName)) {
           userEntry.modes.add(featureName);
-          
-          // Check if user has agent mode feature reported
+
           if (featureName === 'chat_panel_agent_mode' || featureName === 'agent_edit') {
             userEntry.hasAgentModeFeature = true;
           }
         }
       });
 
-      // Collect plugin information from totals_by_ide
       metric.totals_by_ide?.forEach(ide => {
         if (ide.last_known_plugin_version) {
           const { plugin, plugin_version } = ide.last_known_plugin_version;
@@ -81,14 +122,40 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
           }
         }
       });
+
+      const unknownModelEntries = metric.totals_by_language_model?.filter(entry => entry.model?.toLowerCase() === 'unknown') ?? [];
+
+      if (unknownModelEntries.length > 0) {
+        const currentCount = unknownCountsByDay.get(metric.day) ?? 0;
+        unknownCountsByDay.set(metric.day, currentCount + unknownModelEntries.length);
+
+        metric.totals_by_ide?.forEach(ide => {
+          const ideName = ide.ide || 'Unknown IDE';
+          if (!ideAggregations.has(ideName)) {
+            ideAggregations.set(ideName, {
+              occurrences: 0,
+              users: new Set<number>(),
+              pluginVersions: new Set<string>()
+            });
+          }
+
+          const ideEntry = ideAggregations.get(ideName)!;
+          ideEntry.occurrences += 1;
+          ideEntry.users.add(metric.user_id);
+
+          const pluginInfo = ide.last_known_plugin_version;
+          if (pluginInfo?.plugin && pluginInfo?.plugin_version) {
+            ideEntry.pluginVersions.add(`${pluginInfo.plugin} (v${pluginInfo.plugin_version})`);
+          }
+        });
+      }
     });
 
-    // Filter users who have used_agent=true but no chat_panel_agent_mode feature
-    const usersWithDataQualityIssues: DataQualityUser[] = [];
-    
+    const usersWithIssues: DataQualityUser[] = [];
+
     userModeMap.forEach(user => {
       if (user.usedAgent && !user.hasAgentModeFeature) {
-        usersWithDataQualityIssues.push({
+        usersWithIssues.push({
           userLogin: user.userLogin,
           userId: user.userId,
           usedAgent: user.usedAgent,
@@ -100,17 +167,89 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
       }
     });
 
-    // Sort by user login for consistent display
-    return usersWithDataQualityIssues.sort((a, b) => a.userLogin.localeCompare(b.userLogin));
-  };
+    const unknownModelTrend: UnknownModelTrendPoint[] = Array.from(unknownCountsByDay.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([day, count]) => ({ day, count }));
 
-  const usersWithDataQualityIssues = analyzeDataQuality();
+    const ideSummary: IdeSummaryRow[] = Array.from(ideAggregations.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([ide, value]) => ({
+        ide,
+        occurrences: value.occurrences,
+        uniqueUsers: value.users.size,
+        pluginVersions: Array.from(value.pluginVersions).sort()
+      }));
+
+    const totalUnknownModelEntries = unknownModelTrend.reduce((sum, point) => sum + point.count, 0);
+
+    return {
+      usersWithDataQualityIssues: usersWithIssues.sort((a, b) => a.userLogin.localeCompare(b.userLogin)),
+      unknownModelTrend,
+      ideSummary,
+      totalUnknownModelEntries
+    };
+  }, [metrics]);
+
   const formatModes = (modes: string[]): string => {
     return modes.join(', ');
   };
 
   const formatPlugins = (plugins: string[]): string => {
     return plugins.length > 0 ? plugins.join(', ') : 'None';
+  };
+
+  const unknownModelChartData = {
+    labels: unknownModelTrend.map(point => point.day),
+    datasets: [
+      {
+        label: 'Unknown Model Entries',
+        data: unknownModelTrend.map(point => point.count),
+        borderColor: 'rgb(239, 68, 68)',
+        backgroundColor: 'rgba(239, 68, 68, 0.2)',
+        tension: 0.2,
+        fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }
+    ]
+  };
+
+  const unknownModelChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Unknown Model Entries Per Day'
+      },
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          title: (context: TooltipItem<'line'>[]) => context[0]?.label ?? '',
+          label: (context: TooltipItem<'line'>) => `Entries: ${context.parsed.y}`
+        }
+      }
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Day'
+        }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0
+        },
+        title: {
+          display: true,
+          text: 'Unknown Model Entries'
+        }
+      }
+    }
   };
 
   return (
@@ -136,7 +275,143 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
               </div>
             </div>
           </div>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-red-800">Unknown Model Entries</p>
+                <p className="text-lg font-bold text-red-900">{totalUnknownModelEntries.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Unknown Model Trend</h3>
+        {unknownModelTrend.length > 0 ? (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 h-80">
+            <Line data={unknownModelChartData} options={unknownModelChartOptions} />
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 py-10 border border-dashed border-gray-300 rounded-lg">
+            No unknown model entries found in the selected timeframe.
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">IDEs Associated with Unknown Models</h3>
+        {ideSummary.length > 0 ? (
+          <ExpandableTableSection
+            items={ideSummary}
+            initialCount={10}
+            buttonCollapsedLabel={(total) => `Show All ${total} IDEs`}
+            buttonExpandedLabel="Show Less"
+          >
+            {({ visibleItems }) => (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        IDE
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Metrics with Unknown Model
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Impacted Users
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Plugin Versions (Count)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {visibleItems.map((row, index) => (
+                      <tr key={row.ide} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{row.ide}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{row.occurrences.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{row.uniqueUsers.toLocaleString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{row.pluginVersions.length.toLocaleString()}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ExpandableTableSection>
+        ) : (
+          <div className="text-center text-gray-500 py-10 border border-dashed border-gray-300 rounded-lg">
+            No IDE associations found for unknown models.
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-3">Plugin Versions Reported with Unknown Models</h3>
+        {ideSummary.length > 0 ? (
+          <ExpandableTableSection
+            items={ideSummary}
+            initialCount={10}
+            buttonCollapsedLabel={(total) => `Show All ${total} IDEs`}
+            buttonExpandedLabel="Show Less"
+          >
+            {({ visibleItems }) => (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        IDE
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Plugin Versions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {visibleItems.map((row, index) => (
+                      <tr key={`${row.ide}-plugins`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{row.ide}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            {row.pluginVersions.length > 0 ? (
+                              <ul className="list-disc list-inside space-y-1">
+                                {row.pluginVersions.map(plugin => (
+                                  <li key={`${row.ide}-${plugin}`}>{plugin}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="text-gray-500">None</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </ExpandableTableSection>
+        ) : (
+          <div className="text-center text-gray-500 py-10 border border-dashed border-gray-300 rounded-lg">
+            No plugin version data available for unknown models.
+          </div>
+        )}
       </div>
 
       {usersWithDataQualityIssues.length === 0 ? (
