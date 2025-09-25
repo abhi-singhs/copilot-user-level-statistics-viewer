@@ -96,9 +96,9 @@ export default function ModelsUsageChart({ metrics, variant }: ModelsUsageChartP
     const strongDominanceThreshold = 0.7; // 70%+
 
   let variant: 'green' | 'blue' | 'red' | 'orange' | 'purple' = 'blue';
-    const paragraphs: string[] = [];
-    let title = `${isPremium ? 'Premium' : 'Standard'} Model Usage Insights`;
-    let showDocLink = false;
+  const paragraphs: string[] = [];
+  const title = `${isPremium ? 'Premium' : 'Standard'} Model Usage Insights`;
+  let showDocLink = false;
 
     if (top.share >= strongDominanceThreshold) {
       variant = 'red';
