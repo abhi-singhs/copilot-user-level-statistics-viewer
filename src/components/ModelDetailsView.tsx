@@ -89,15 +89,15 @@ export default function ModelDetailsView({ onBack }: ModelDetailsViewProps) {
     const paragraphs: string[] = [];
     let variant: 'green' | 'blue' | 'red' | 'orange' | 'purple' = 'blue';
 
-    if (premiumShare < 0.1) {
+    if (premiumShare < 0.2) {
       variant = 'red';
       paragraphs.push(
-        `Premium models account for only ${shareLabel} of tracked interactions. Included PRUs are likely expiring unused each month.`
+        `Premium models account for only ${shareLabel} of tracked interactions. Included PRUs are likely expiring unused each month. Which is a missed opportunity and unutilized value.`
       );
       paragraphs.push(
-        `Standard models processed ${numberFormatter.format(standardLead)} more requests, signaling an awareness or entitlement gap for premium access.`
+        `Standard models processed ${numberFormatter.format(standardLead)} more requests, signaling an awareness or entitlement gap for Premium Models access. There is room to utilize more of the included (prepaid) PRUs.`
       );
-    } else if (premiumShare < 0.25) {
+    } else if (premiumShare < 0.35) {
       variant = 'orange';
       paragraphs.push(
         `Premium models represent ${shareLabel} of usage. Consider nudging teams on premium value or checking whether they exhaust PRUs early in the month.`
@@ -111,7 +111,7 @@ export default function ModelDetailsView({ onBack }: ModelDetailsViewProps) {
           `Standard usage leads by ${numberFormatter.format(standardLead)} interactions, leaving meaningful premium headroom before monthly resets.`
         );
       }
-    } else if (premiumShare <= 0.5) {
+    } else if (premiumShare <= 0.6) {
       variant = 'green';
       paragraphs.push(
         `Premium share at ${shareLabel} points to a healthy balance between premium and standard model usage.`
@@ -122,7 +122,7 @@ export default function ModelDetailsView({ onBack }: ModelDetailsViewProps) {
         );
       } else {
         paragraphs.push(
-          `Standard models still lead by ${numberFormatter.format(standardLead)} interactions, suggesting the baseline 300 PRUs per user should comfortably cover demand.`
+          `Standard models still lead by ${numberFormatter.format(standardLead)} interactions, suggesting the opportunity to further increase included Premium Model requests usage.`
         );
       }
     } else {

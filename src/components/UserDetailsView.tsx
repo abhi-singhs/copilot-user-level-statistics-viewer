@@ -1437,7 +1437,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
                   <div className="p-4 bg-red-50 rounded-lg">
                     <h4 className="font-semibold text-red-800 mb-2">Agent Mode Insights</h4>
                     <p className="text-sm text-red-700">
-                      Agent Mode is a premium feature that creates autonomous coding sessions. 
+                      Agent Mode is an advanced feature that creates autonomous coding sessions. 
                       {totalRequests > 100 ? ' High usage indicates strong adoption of advanced AI features.' : ' Consider using Agent Mode for complex coding tasks.'}
                     </p>
                   </div>

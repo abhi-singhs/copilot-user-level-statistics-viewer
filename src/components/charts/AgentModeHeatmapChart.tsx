@@ -267,7 +267,7 @@ export default function AgentModeHeatmapChart({ data }: AgentModeHeatmapChartPro
       <div className="mt-6">
         <InsightsCard title="Agent Mode Insights" variant="red">
           <p>
-            Agent Mode is a premium feature that creates autonomous coding sessions.
+            Agent Mode is an advanced feature that creates autonomous coding sessions.
             {totalRequests > 100 ? ' High usage indicates strong adoption of advanced AI features.' : ' Consider promoting Agent Mode for complex coding tasks.'}
           </p>
         </InsightsCard>
