@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
-import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
+import { formatIDEName } from '../utils/ideIcons';
+import IDEActivityChart from './charts/IDEActivityChart';
 import ModeImpactChart from './charts/ModeImpactChart';
 import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
 import { calculateDailyPRUAnalysis, calculateJoinedImpactData } from '../utils/metricsParser';
@@ -1022,58 +1023,12 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         </div>
       )}
 
-      {/* Totals by IDE */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by IDE</h3>
-        
-        {/* Bar Chart */}
-        {ideBarChartData.datasets.length > 0 && (
-          <div className="mb-6">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-800 mb-4 text-center">Daily IDE Interactions</h4>
-              <div className="h-64">
-                <Bar data={ideBarChartData} options={barChartOptions} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="overflow-x-auto">
-          <table className="w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IDE</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {ideAggregates.map((ide) => (
-                <tr key={ide.ide}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    <div className="flex items-center gap-2">
-                      {React.createElement(getIDEIcon(ide.ide))}
-                      <span>{formatIDEName(ide.ide)}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.user_initiated_interaction_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_generation_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.code_acceptance_activity_count.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_added_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_deleted_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_suggested_to_add_sum.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.loc_suggested_to_delete_sum.toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Totals by IDE (refactored into reusable component) */}
+      <IDEActivityChart
+        ideAggregates={ideAggregates}
+        barChartData={ideBarChartData}
+        barChartOptions={barChartOptions}
+      />
 
       {/* Totals by Feature */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
