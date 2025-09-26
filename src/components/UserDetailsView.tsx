@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
 import { formatIDEName } from '../utils/ideIcons';
@@ -10,10 +10,10 @@ import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
 import { calculateDailyPRUAnalysis, calculateJoinedImpactData } from '../utils/metricsParser';
 import { SERVICE_VALUE_RATE, getModelMultiplier } from '../domain/modelConfig';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
 import PRUModelUsageChart from './charts/PRUModelUsageChart';
 import UserSummaryChart from './charts/UserSummaryChart';
 import UserActivityByLanguageAndFeatureChart from './charts/UserActivityByLanguageAndFeatureChart';
+import UserActivityByModelAndFeatureChart from './charts/UserActivityByModelAndFeatureChart';
 import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
 
@@ -27,8 +27,7 @@ interface UserDetailsViewProps {
 }
 
 export default function UserDetailsView({ userMetrics, userLogin, userId, onBack }: UserDetailsViewProps) {
-  // State for collapsible sections
-  const [isModelTableExpanded, setIsModelTableExpanded] = useState(false);
+  // State for collapsible sections moved into dedicated components
 
   // (Removed agent heatmap chart state and related section)
 
@@ -722,113 +721,11 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       <PRUModelUsageChart data={userModelUsageData} />
 
 
-      {/* Totals by Model and Feature - Grouped by Model */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Activity by Model and Feature</h3>
-        
-        {/* Bar Chart */}
-        {modelBarChartData.datasets.length > 0 && (
-          <div className="mb-6">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-800 mb-4 text-center">Daily Model Interactions</h4>
-              <div className="h-64">
-                <Bar data={modelBarChartData} options={modelBarChartOptions} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Collapsible Table Section */}
-        <div className="border-t border-gray-200 pt-4">
-          <button
-            onClick={() => setIsModelTableExpanded(!isModelTableExpanded)}
-            className="flex items-center justify-between w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <span className="text-sm font-medium text-gray-700">
-              Detailed Model and Feature Breakdown
-            </span>
-            <svg
-              className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                isModelTableExpanded ? 'rotate-180' : ''
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {isModelTableExpanded && (
-            <div className="mt-4 overflow-x-auto">
-              {(() => {
-                // Group model feature data by model
-                const groupedByModel = modelFeatureAggregates.reduce((acc, item) => {
-                  if (!acc[item.model]) {
-                    acc[item.model] = [];
-                  }
-                  acc[item.model].push(item);
-                  return acc;
-                }, {} as Record<string, typeof modelFeatureAggregates>);
-
-                // Sort models by total interactions (descending), but put "unknown" at the end
-                const sortedModels = Object.keys(groupedByModel).sort((a, b) => {
-                  if (a === 'unknown') return 1;
-                  if (b === 'unknown') return -1;
-                  
-                  const totalInteractionsA = groupedByModel[a].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
-                  const totalInteractionsB = groupedByModel[b].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0);
-                  
-                  return totalInteractionsB - totalInteractionsA; // Descending order
-                });
-
-                return (
-                  <div className="space-y-6">
-                    {sortedModels.map((model) => (
-                      <div key={model} className="border border-gray-200 rounded-lg p-4">
-                        <h4 className="text-md font-semibold text-gray-800 mb-3 capitalize">
-                          {model === 'unknown' ? 'Unknown Model' : model}
-                          <span className="text-sm font-normal text-gray-600 ml-2">
-                            ({groupedByModel[model].reduce((sum, item) => sum + item.user_initiated_interaction_count, 0).toLocaleString()} total interactions)
-                          </span>
-                        </h4>
-                        <table className="w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feature</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Interactions</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Generation</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acceptance</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {groupedByModel[model].map((item, index) => (
-                              <tr key={index}>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{translateFeature(item.feature)}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.user_initiated_interaction_count.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_generation_activity_count.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.code_acceptance_activity_count.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_added_sum.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_deleted_sum.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_add_sum.toLocaleString()}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.loc_suggested_to_delete_sum.toLocaleString()}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </div>
+      <UserActivityByModelAndFeatureChart
+        modelFeatureAggregates={modelFeatureAggregates}
+        modelBarChartData={modelBarChartData}
+        modelBarChartOptions={modelBarChartOptions}
+      />
     </div>
   );
 }
