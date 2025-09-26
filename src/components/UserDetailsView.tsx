@@ -10,7 +10,7 @@ import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
 import { calculateDailyPRUAnalysis, calculateJoinedImpactData } from '../utils/metricsParser';
 import { SERVICE_VALUE_RATE, getModelMultiplier } from '../domain/modelConfig';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
-import { Bar, Chart } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import PRUModelUsageChart from './charts/PRUModelUsageChart';
 import UserSummaryChart from './charts/UserSummaryChart';
 import UserActivityByLanguageAndFeatureChart from './charts/UserActivityByLanguageAndFeatureChart';
@@ -30,8 +30,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
   // State for collapsible sections
   const [isModelTableExpanded, setIsModelTableExpanded] = useState(false);
 
-  // State for chart view types
-  const [agentHeatmapChartType, setAgentHeatmapChartType] = useState<'heatmap' | 'line' | 'bar'>('heatmap');
+  // (Removed agent heatmap chart state and related section)
 
   // Calculate aggregated stats for this user
   const totalInteractions = userMetrics.reduce((sum, metric) => sum + metric.user_initiated_interaction_count, 0);
@@ -181,57 +180,9 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
-  // Calculate agent mode heatmap data for single user
-  const calculateUserAgentModeHeatmap = () => {
-    const data = userMetrics.map(metric => {
-      let agentModeRequests = 0;
-      let unknownModeRequests = 0;
-      let totalPRUs = 0;
-
-      // Check for agent mode and unknown mode usage in features
-      for (const feature of metric.totals_by_feature) {
-        if (feature.feature === 'chat_panel_agent_mode' && feature.user_initiated_interaction_count > 0) {
-          agentModeRequests += feature.user_initiated_interaction_count;
-        }
-        if (feature.feature === 'chat_panel_unknown_mode' && feature.user_initiated_interaction_count > 0) {
-          unknownModeRequests += feature.user_initiated_interaction_count;
-        }
-      }
-
-      // Calculate PRUs from agent mode interactions
-      for (const modelFeature of metric.totals_by_model_feature) {
-        if (modelFeature.feature === 'chat_panel_agent_mode') {
-          const multiplier = getModelMultiplier(modelFeature.model);
-          totalPRUs += modelFeature.user_initiated_interaction_count * multiplier;
-        }
-      }
-
-      return {
-        date: metric.day,
-        agentModeRequests,
-        unknownModeRequests,
-        totalPRUs,
-  serviceValue: Math.round(totalPRUs * SERVICE_VALUE_RATE * 100) / 100
-      };
-    });
-
-    const allRequests = data.map(d => d.agentModeRequests + d.unknownModeRequests);
-    const maxRequests = Math.max(...allRequests, 1);
-
-    return data.map(d => ({
-      date: d.date,
-      agentModeRequests: d.agentModeRequests,
-      unknownModeRequests: d.unknownModeRequests,
-      uniqueUsers: (d.agentModeRequests + d.unknownModeRequests) > 0 ? 1 : 0, // For single user, it's either 0 or 1
-      intensity: Math.ceil(((d.agentModeRequests + d.unknownModeRequests) / maxRequests) * 5),
-      serviceValue: d.serviceValue
-    })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  };
-
   const userPRUAnalysisData = calculateDailyPRUAnalysis(userMetrics);
   const userCombinedImpactData = calculateJoinedImpactData(userMetrics);
   const userModelUsageData = calculateUserModelUsage();
-  const userAgentHeatmapData = calculateUserAgentModeHeatmap();
 
   // Prepare chart data
   // 1. IDEs chart data (based on interactions)
@@ -662,128 +613,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
   };
 
 
-  // Agent Heatmap Chart functions
-  const getIntensityColor = (intensity: number) => {
-    const colors = [
-      'rgb(243, 244, 246)', // intensity 0 - very light gray
-      'rgb(254, 202, 202)', // intensity 1 - very light red
-      'rgb(252, 165, 165)', // intensity 2 - light red
-      'rgb(248, 113, 113)', // intensity 3 - medium red
-      'rgb(239, 68, 68)',   // intensity 4 - red
-      'rgb(220, 38, 38)'    // intensity 5 - dark red
-    ];
-    return colors[Math.min(intensity, 5)];
-  };
-
-  const agentHeatmapChartData = agentHeatmapChartType === 'heatmap' ? {
-    labels: userAgentHeatmapData.map(d => new Date(d.date).toLocaleDateString()),
-    datasets: [
-      {
-        label: 'Agent Mode Requests',
-        data: userAgentHeatmapData.map(d => d.agentModeRequests),
-        backgroundColor: userAgentHeatmapData.map(d => getIntensityColor(d.intensity)),
-        borderColor: 'rgb(239, 68, 68)',
-        borderWidth: 1
-      },
-      {
-        label: 'Unknown Mode Requests',
-        data: userAgentHeatmapData.map(d => d.unknownModeRequests),
-        backgroundColor: 'rgba(156, 163, 175, 0.8)',
-        borderColor: 'rgb(107, 114, 128)',
-        borderWidth: 1
-      }
-    ]
-  } : {
-    labels: userAgentHeatmapData.map(d => new Date(d.date).toLocaleDateString()),
-    datasets: [
-      {
-        label: 'Agent Mode Requests',
-        data: userAgentHeatmapData.map(d => d.agentModeRequests),
-        backgroundColor: 'rgba(239, 68, 68, 0.6)',
-        borderColor: 'rgb(239, 68, 68)',
-        borderWidth: 2,
-        tension: 0.4,
-        yAxisID: 'y'
-      },
-      {
-        label: 'Unknown Mode Requests',
-        data: userAgentHeatmapData.map(d => d.unknownModeRequests),
-        backgroundColor: 'rgba(156, 163, 175, 0.6)',
-        borderColor: 'rgb(107, 114, 128)',
-        borderWidth: 2,
-        tension: 0.4,
-        yAxisID: 'y'
-      }
-    ]
-  };
-
-  const agentHeatmapChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: 'index' as const,
-      intersect: false,
-    },
-    scales: agentHeatmapChartType === 'heatmap' ? {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Date'
-        }
-      },
-      y: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Number of Requests'
-        },
-        beginAtZero: true
-      }
-    } : {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Date'
-        }
-      },
-      y: {
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-        title: {
-          display: true,
-          text: 'Number of Requests'
-        },
-        beginAtZero: true
-      }
-    },
-    plugins: {
-      title: {
-        display: true,
-        text: 'Chat Panel Usage: Agent Mode vs Unknown Mode'
-      },
-      legend: {
-        position: 'top' as const,
-      },
-      tooltip: {
-        callbacks: {
-          afterBody: function(context: TooltipItem<'bar' | 'line'>[]) {
-            const dataIndex = context[0].dataIndex;
-            const dayData = userAgentHeatmapData[dataIndex];
-            return [
-              '',
-              `Agent Mode Requests: ${dayData.agentModeRequests}`,
-              `Unknown Mode Requests: ${dayData.unknownModeRequests}`,
-              `Intensity Level: ${dayData.intensity}/5`,
-              `Service Value: $${dayData.serviceValue}`
-            ];
-          }
-        }
-      }
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -890,137 +719,8 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       <PRUCostAnalysisChart data={userPRUAnalysisData} />
 
       {/* Daily PRU vs Standard Model Usage */}
-        <PRUModelUsageChart data={userModelUsageData} />
+      <PRUModelUsageChart data={userModelUsageData} />
 
-      {/* Chat Panel Usage: Agent Mode vs Unknown Mode */}
-      {userAgentHeatmapData.some(d => d.agentModeRequests > 0 || d.unknownModeRequests > 0) && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Chat Panel Usage: Agent Mode vs Unknown Mode</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setAgentHeatmapChartType('heatmap')}
-                className={`px-3 py-1 text-sm rounded ${
-                  agentHeatmapChartType === 'heatmap' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Heatmap
-              </button>
-              <button
-                onClick={() => setAgentHeatmapChartType('line')}
-                className={`px-3 py-1 text-sm rounded ${
-                  agentHeatmapChartType === 'line' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Line
-              </button>
-              <button
-                onClick={() => setAgentHeatmapChartType('bar')}
-                className={`px-3 py-1 text-sm rounded ${
-                  agentHeatmapChartType === 'bar' 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Bar
-              </button>
-            </div>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {(() => {
-              const totalRequests = userAgentHeatmapData.reduce((sum, d) => sum + d.agentModeRequests, 0);
-              const totalCost = userAgentHeatmapData.reduce((sum, d) => sum + d.serviceValue, 0);
-              const peakDay = userAgentHeatmapData.reduce((max, d) => d.agentModeRequests > max.agentModeRequests ? d : max, userAgentHeatmapData[0] || {agentModeRequests: 0, date: ''});
-              const avgRequestsPerDay = userAgentHeatmapData.length > 0 ? Math.round((totalRequests / userAgentHeatmapData.length) * 100) / 100 : 0;
-              const maxIntensity = Math.max(...userAgentHeatmapData.map(d => d.intensity));
-
-              return (
-                <>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">{totalRequests}</div>
-                    <div className="text-sm text-gray-600">Total Requests</div>
-                    <div className="text-xs text-gray-500">{avgRequestsPerDay}/day avg</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">${Math.round(totalCost * 100) / 100}</div>
-                    <div className="text-sm text-gray-600">PRU Cost</div>
-                    <div className="text-xs text-gray-500">Estimated total</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{peakDay?.agentModeRequests || 0}</div>
-                    <div className="text-sm text-gray-600">Peak Day</div>
-                    <div className="text-xs text-gray-500">{peakDay?.date ? new Date(peakDay.date).toLocaleDateString() : 'N/A'}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">{maxIntensity}</div>
-                    <div className="text-sm text-gray-600">Max Intensity</div>
-                    <div className="text-xs text-gray-500">Scale 1-5</div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-
-          {/* Chart */}
-          <div className="h-96">
-            {agentHeatmapChartType === 'heatmap' && <Bar data={agentHeatmapChartData} options={agentHeatmapChartOptions} />}
-            {agentHeatmapChartType === 'line' && <Chart type="line" data={agentHeatmapChartData} options={agentHeatmapChartOptions} />}
-            {agentHeatmapChartType === 'bar' && <Bar data={agentHeatmapChartData} options={agentHeatmapChartOptions} />}
-          </div>
-
-          {/* Intensity Legend for Heatmap */}
-          {agentHeatmapChartType === 'heatmap' && (
-            <div className="mt-4">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Intensity Scale:</h4>
-              <div className="flex items-center gap-2 text-xs">
-                {[0, 1, 2, 3, 4, 5].map(level => (
-                  <div key={level} className="flex items-center gap-1">
-                    <div 
-                      className="w-4 h-4 border border-gray-300 rounded"
-                      style={{ backgroundColor: getIntensityColor(level) }}
-                    ></div>
-                    <span className="text-gray-600">{level}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Usage Insights */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(() => {
-              const totalRequests = userAgentHeatmapData.reduce((sum, d) => sum + d.agentModeRequests, 0);
-              const totalCost = userAgentHeatmapData.reduce((sum, d) => sum + d.serviceValue, 0);
-
-              return (
-                <>
-                  <div className="p-4 bg-red-50 rounded-lg">
-                    <h4 className="font-semibold text-red-800 mb-2">Agent Mode Insights</h4>
-                    <p className="text-sm text-red-700">
-                      Agent Mode is an advanced feature that creates autonomous coding sessions. 
-                      {totalRequests > 100 ? ' High usage indicates strong adoption of advanced AI features.' : ' Consider using Agent Mode for complex coding tasks.'}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-semibold text-purple-800 mb-2">Cost Analysis</h4>
-                    <p className="text-sm text-purple-700">
-                      Total estimated PRU cost: ${Math.round(totalCost * 100) / 100}. 
-                      Average cost per request: ${totalRequests > 0 ? Math.round((totalCost / totalRequests) * 100) / 100 : 0}.
-                      {totalCost > 50 ? ' Significant investment in premium AI features.' : ' Moderate premium feature usage.'}
-                    </p>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
-      )}
 
       {/* Totals by Model and Feature - Grouped by Model */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
