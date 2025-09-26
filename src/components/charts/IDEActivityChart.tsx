@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState } from 'react';
 import { Bar } from 'react-chartjs-2';
 import type { ChartData, ChartOptions } from 'chart.js';
 import { getIDEIcon, formatIDEName } from '../../utils/ideIcons';
@@ -20,6 +20,11 @@ interface IDEActivityChartProps {
   barChartData: ChartData<'bar'>;
   barChartOptions: ChartOptions<'bar'>;
   title?: string;
+  pluginVersions?: {
+    plugin: string;
+    plugin_version: string;
+    sampled_at: string;
+  }[];
 }
 
 /**
@@ -31,8 +36,11 @@ export default function IDEActivityChart({
   ideAggregates,
   barChartData,
   barChartOptions,
-  title = 'Activity by IDE'
+  title = 'Activity by IDE',
+  pluginVersions
 }: IDEActivityChartProps) {
+  const [isPluginTableExpanded, setIsPluginTableExpanded] = useState(false);
+
   if (!ideAggregates || ideAggregates.length === 0) {
     return null; // nothing to render
   }
@@ -88,6 +96,42 @@ export default function IDEActivityChart({
           </tbody>
         </table>
       </div>
+
+      {pluginVersions && pluginVersions.length > 0 && (
+        <div className="mt-8">
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Plugin Versions</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plugin</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Seen</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {(isPluginTableExpanded ? pluginVersions : pluginVersions.slice(0, 1)).map((plugin, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{plugin.plugin}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{plugin.plugin_version}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(plugin.sampled_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {pluginVersions.length > 1 && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setIsPluginTableExpanded(!isPluginTableExpanded)}
+                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 border border-blue-300 hover:border-blue-400 rounded-md transition-colors"
+              >
+                {isPluginTableExpanded ? 'Show Less' : `Show All ${pluginVersions.length} Plugin Versions`}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

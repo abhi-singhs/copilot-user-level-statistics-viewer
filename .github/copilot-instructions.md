@@ -13,6 +13,8 @@ This workspace contains a Next.js TypeScript single page application.
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
+Avoid Running `npm run build` when "Next.js Development Server" task is running in VSCode as it may cause conflicts.
+
 ## Code Quality Guidelines
 
 ### TypeScript & ESLint Rules
@@ -77,3 +79,9 @@ const itemsToShow = isTableExpanded ? allItems : allItems.slice(0, maxItemsToSho
 - **Complete Data Tables**: Show top 10 rows, expand to see all entries
 
 
+#### Comments
+
+Do not add comments when performing a refactoring for example:
+
+- // Refactored into reusable component --- IGNORE ---
+- // Moved to IDEActivityChart component --- IGNORE ---
