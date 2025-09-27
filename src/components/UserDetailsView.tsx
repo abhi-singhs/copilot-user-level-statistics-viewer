@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CopilotMetrics } from '../types/metrics';
 import { translateFeature } from '../utils/featureTranslations';
 import { formatIDEName } from '../utils/ideIcons';
@@ -16,6 +16,8 @@ import UserActivityByLanguageAndFeatureChart from './charts/UserActivityByLangua
 import UserActivityByModelAndFeatureChart from './charts/UserActivityByModelAndFeatureChart';
 import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
+import ActivityCalendar from './ui/ActivityCalendar';
+import DayDetailsModal from './ui/DayDetailsModal';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler);
 
@@ -27,6 +29,33 @@ interface UserDetailsViewProps {
 }
 
 export default function UserDetailsView({ userMetrics, userLogin, userId, onBack }: UserDetailsViewProps) {
+  // State for day details modal
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    selectedDate: string;
+    selectedMetrics?: CopilotMetrics;
+  }>({
+    isOpen: false,
+    selectedDate: '',
+    selectedMetrics: undefined,
+  });
+
+  const handleDayClick = (date: string, dayMetrics?: CopilotMetrics) => {
+    setModalState({
+      isOpen: true,
+      selectedDate: date,
+      selectedMetrics: dayMetrics,
+    });
+  };
+
+  const handleCloseModal = () => {
+    setModalState({
+      isOpen: false,
+      selectedDate: '',
+      selectedMetrics: undefined,
+    });
+  };
+
   // State for collapsible sections moved into dedicated components
 
   // (Removed agent heatmap chart state and related section)
@@ -657,6 +686,8 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         emptyStateMessage="No combined impact data available."
       />
 
+      <ActivityCalendar userMetrics={userMetrics} onDayClick={handleDayClick} />
+
       <UserSummaryChart
         usedChat={usedChat}
         usedAgent={usedAgent}
@@ -725,6 +756,14 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         modelFeatureAggregates={modelFeatureAggregates}
         modelBarChartData={modelBarChartData}
         modelBarChartOptions={modelBarChartOptions}
+      />
+
+      {/* Day Details Modal */}
+      <DayDetailsModal
+        isOpen={modalState.isOpen}
+        onClose={handleCloseModal}
+        date={modalState.selectedDate}
+        dayMetrics={modalState.selectedMetrics}
       />
     </div>
   );
