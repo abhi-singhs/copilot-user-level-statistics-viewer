@@ -1,5 +1,5 @@
 import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
-import { SERVICE_VALUE_RATE, getModelMultiplier } from '../domain/modelConfig';
+import { SERVICE_VALUE_RATE, getModelMultiplier, isPremiumModel } from '../domain/modelConfig';
 
 export function parseMetricsFile(fileContent: string): CopilotMetrics[] {
   const lines = fileContent.split('\n').filter(line => line.trim());
@@ -587,6 +587,7 @@ export interface DailyPRUAnalysisData {
   serviceValue: number; // Value of premium services consumed
   topModel: string;
   topModelPRUs: number;
+  topModelIsPremium: boolean; // Explicit premium flag for the top model
 }
 
 export function calculateDailyPRUAnalysis(metrics: CopilotMetrics[]): DailyPRUAnalysisData[] {
@@ -635,7 +636,7 @@ export function calculateDailyPRUAnalysis(metrics: CopilotMetrics[]): DailyPRUAn
       const total = data.pruRequests + data.standardRequests;
       const topModelEntry = Array.from(data.modelPRUs.entries())
         .sort((a, b) => b[1] - a[1])[0];
-        
+      const topModelName = topModelEntry ? topModelEntry[0] : 'unknown';
       return {
         date,
         pruRequests: data.pruRequests,
@@ -643,8 +644,9 @@ export function calculateDailyPRUAnalysis(metrics: CopilotMetrics[]): DailyPRUAn
         pruPercentage: total > 0 ? Math.round((data.pruRequests / total) * 100 * 100) / 100 : 0,
         totalPRUs: Math.round(data.totalPRUs * 100) / 100,
         serviceValue: Math.round(data.totalPRUs * SERVICE_VALUE_RATE * 100) / 100,
-        topModel: topModelEntry ? topModelEntry[0] : 'unknown',
-        topModelPRUs: topModelEntry ? Math.round(topModelEntry[1] * 100) / 100 : 0
+        topModel: topModelName,
+        topModelPRUs: topModelEntry ? Math.round(topModelEntry[1] * 100) / 100 : 0,
+        topModelIsPremium: isPremiumModel(topModelName)
       };
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());

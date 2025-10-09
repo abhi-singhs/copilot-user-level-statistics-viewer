@@ -28,6 +28,7 @@ export const KNOWN_MODELS: Model[] = [
   // Premium models with multipliers
   new Model('gpt-5', 1, true),
   new Model('gpt-5.0', 1, true),
+  new Model('gpt-5.0-codex', 1, true),
   new Model('o3', 1, true),
   new Model('o3-mini', 0.33, true),
   new Model('o4-mini', 0.33, true),
@@ -35,6 +36,7 @@ export const KNOWN_MODELS: Model[] = [
   new Model('claude-3.7-sonnet', 1, true),
   new Model('claude-3.7-sonnet-thought', 1.25, true),
   new Model('claude-4.0-sonnet', 1, true),
+  new Model('claude-4.5-sonnet', 1, true),
   new Model('claude-opus-4', 10, true),
   new Model('claude-opus-4.1', 10, true),
   new Model('gemini-2.0-flash', 0.25, true),
@@ -86,4 +88,25 @@ export function getModelMultiplier(modelName: string): number {
   }
 
   return UNKNOWN_MULTIPLIER;
+}
+
+/**
+ * Determine if a model should be treated as premium (incurs PRU consumption beyond included tier).
+ * Uses the canonical KNOWN_MODELS list. Unknown models inherit the flag from the 'unknown' entry.
+ */
+export function isPremiumModel(modelName: string): boolean {
+  const normalized = normalizeModelName(modelName);
+  // Exact match first
+  const direct = KNOWN_MODELS.find(m => normalizeModelName(m.name) === normalized);
+  if (direct) return direct.isPremium;
+  // Partial match fallback (mirrors multiplier resolution logic, excluding 'unknown')
+  for (const model of KNOWN_MODELS) {
+    if (normalizeModelName(model.name) === 'unknown') continue;
+    if (normalized.includes(normalizeModelName(model.name))) {
+      return model.isPremium;
+    }
+  }
+  // Fallback to 'unknown' model's premium flag
+  const unknown = KNOWN_MODELS.find(m => normalizeModelName(m.name) === 'unknown');
+  return unknown ? unknown.isPremium : true;
 }

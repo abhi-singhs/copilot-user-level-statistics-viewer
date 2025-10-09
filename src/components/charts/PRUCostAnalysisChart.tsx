@@ -56,7 +56,12 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
 
   // Find most expensive day and top model
   const maxCostDay = data.reduce((max, d) => d.serviceValue > max.serviceValue ? d : max, data[0]);
-  const topModels = [...new Set(data.map(d => d.topModel))].filter(m => m !== 'unknown');
+  // Collect unique premium models only (using explicit flag passed in data)
+  const topModels = [...new Set(
+    data
+      .filter(d => d.topModelIsPremium && d.topModel !== 'unknown')
+      .map(d => d.topModel)
+  )];
 
   const getChartData = () => {
     switch (viewType) {
@@ -314,7 +319,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         </InsightsCard>
         <InsightsCard title="Model Insights" variant="blue">
           <p>
-            Top premium models used: {topModels.slice(0, 3).join(', ') || 'None'}.
+            Top premium models used: {topModels.length > 0 ? topModels.slice(0, 3).join(', ') : 'None'}
             {topModels.length > 3 && ` +${topModels.length - 3} more`}
           </p>
         </InsightsCard>
