@@ -28,6 +28,7 @@ export default function CustomerEmailView({
 }: CustomerEmailViewProps) {
   const [contactName, setContactName] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [enterpriseSlug, setEnterpriseSlug] = useState('');
 
   // Calculate top model, skipping "unknown" if needed
   const { displayModelName, isTopModelPremium } = useMemo(() => {
@@ -85,7 +86,7 @@ export default function CustomerEmailView({
         {/* Input Fields Section */}
         <div className="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Email Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-2">
                 Contact Name
@@ -109,6 +110,19 @@ export default function CustomerEmailView({
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="Enter company name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="enterpriseSlug" className="block text-sm font-medium text-gray-700 mb-2">
+                Enterprise Slug
+              </label>
+              <input
+                type="text"
+                id="enterpriseSlug"
+                value={enterpriseSlug}
+                onChange={(e) => setEnterpriseSlug(e.target.value)}
+                placeholder="Enter enterprise slug"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
@@ -137,12 +151,12 @@ export default function CustomerEmailView({
             You can find it at:
             <br />
             <a 
-              href={`https://github.com/enterprises/ENTERPRISE/insights/copilot?period=28d&interval=1d`}
+              href={`https://github.com/enterprises/${enterpriseSlug || 'ENTERPRISE'}/insights/copilot?period=28d&interval=1d`}
               className="text-indigo-600 hover:text-indigo-800 underline break-all"
               target="_blank"
               rel="noopener noreferrer"
             >
-              https://github.com/enterprises/ENTERPRISE/insights/copilot?period=28d&interval=1d
+              https://github.com/enterprises/{enterpriseSlug || '[ENTERPRISE SLUG]'}/insights/copilot?period=28d&interval=1d
             </a>
           </p>
           
