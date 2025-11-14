@@ -220,7 +220,11 @@ ${premiumModelsImage ? `
 
       // Copy to clipboard with HTML format
       const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-      const textBlob = new Blob([htmlContent.replace(/<[^>]*>/g, '')], { type: 'text/plain' });
+      // Use DOMParser or a temporary DOM element to safely extract plain text
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      const plainText = tempDiv.textContent || tempDiv.innerText || "";
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
       
       await navigator.clipboard.write([
         new ClipboardItem({
