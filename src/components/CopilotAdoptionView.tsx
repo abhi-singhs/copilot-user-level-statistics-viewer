@@ -21,9 +21,8 @@ interface CopilotAdoptionViewProps {
 export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeatmapData, stats, metrics, onBack }: CopilotAdoptionViewProps) {
   // JetBrains plugin updates state
   interface JetBrainsPluginUpdate {
-    id: number;
     version: string;
-    cdate: string; // epoch millis as string
+    releaseDate: string; // ISO string
   }
 
   const [jetbrainsUpdates, setJetbrainsUpdates] = useState<JetBrainsPluginUpdate[] | null>(null);
@@ -40,12 +39,21 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
         const res = await fetch('/data/jetbrains.json', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data: unknown = await res.json();
-        if (!Array.isArray(data)) throw new Error('Unexpected response shape');
-        const mapped: JetBrainsPluginUpdate[] = data.map((item) => ({
-          id: typeof item.id === 'number' ? item.id : -1,
-          version: typeof item.version === 'string' ? item.version : 'n/a',
-          cdate: typeof item.cdate === 'string' ? item.cdate : String(item.cdate ?? '')
-        }));
+
+        if (!data || typeof data !== 'object' || !Array.isArray((data as { versions?: unknown }).versions)) {
+          throw new Error('Unexpected response shape');
+        }
+
+        const versionsArray = (data as { versions: unknown[] }).versions;
+
+        const mapped: JetBrainsPluginUpdate[] = versionsArray.map((item) => {
+          const obj = item as { version?: unknown; releaseDate?: unknown };
+          return {
+            version: typeof obj.version === 'string' ? obj.version : 'n/a',
+            releaseDate: typeof obj.releaseDate === 'string' ? obj.releaseDate : String(obj.releaseDate ?? ''),
+          };
+        });
+
         if (isMounted) setJetbrainsUpdates(mapped);
       } catch (e) {
         if (isMounted) setJbError((e as Error).message);
@@ -112,7 +120,7 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
         const vLower = u.version.toLowerCase();
         if (vLower.endsWith('-nightly')) continue; // exclude nightly builds
         if (!map.has(u.version)) {
-          map.set(u.version, u.cdate);
+          map.set(u.version, u.releaseDate);
         }
       }
     }
@@ -126,13 +134,13 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
     );
   }, [pluginVersionAnalysis, latestEightVersions]);
 
-  function formatDate(epochMillisString: string): string {
-    const ms = Number(epochMillisString);
-    if (!Number.isFinite(ms)) return epochMillisString;
+  function formatDate(dateString: string): string {
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return dateString;
     try {
-      return new Date(ms).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     } catch {
-      return epochMillisString;
+      return dateString;
     }
   }
 
@@ -347,9 +355,9 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
                       </tr>
                     )}
                     {!jbLoading && !jbError && visibleItems.map(update => (
-                      <tr key={update.id} className="hover:bg-gray-50">
+                      <tr key={update.version} className="hover:bg-gray-50">
                         <td className="px-4 py-2 font-mono text-gray-900 whitespace-nowrap">{update.version}</td>
-                        <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{formatDate(update.cdate)}</td>
+                        <td className="px-4 py-2 text-gray-700 whitespace-nowrap">{formatDate(update.releaseDate)}</td>
                       </tr>
                     ))}
                   </tbody>
