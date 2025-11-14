@@ -439,7 +439,7 @@ ${premiumModelsImage ? `
                 <li>More Complex tasks for Copilot Agent Mode</li>
                 <li>Better quality answers in Copilot Chat Ask mode</li>
               </ul>
-              <p>I'm happy to discuss them with you and help you gaining more value from the product.</p>
+              <p>I&apos;m happy to discuss them with you and help you gaining more value from the product.</p>
             </>
           )}
           
