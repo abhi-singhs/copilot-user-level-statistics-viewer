@@ -32,6 +32,15 @@ export default function CustomerEmailView({
   const [isCopilotStandalone, setIsCopilotStandalone] = useState(false);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copying' | 'success' | 'error'>('idle');
 
+// Escapes user text for safe HTML output
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
   // Refs for chart containers
   const combinedImpactChartRef = useRef<HTMLDivElement>(null);
   const agentModeChartRef = useRef<HTMLDivElement>(null);
@@ -133,7 +142,7 @@ export default function CustomerEmailView({
 </head>
 <body>
 
-<p>Hi ${contactName || '[Contact Name]'},</p>
+<p>Hi ${escapeHtml(contactName) || '[Contact Name]'},</p>
 
 <p>I hope you're doing well. It's been a while since we last spoke.</p>
 
@@ -220,7 +229,11 @@ ${premiumModelsImage ? `
 
       // Copy to clipboard with HTML format
       const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-      const textBlob = new Blob([htmlContent.replace(/<[^>]*>/g, '')], { type: 'text/plain' });
+      // Use DOMParser or a temporary DOM element to safely extract plain text
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      const plainText = tempDiv.textContent || tempDiv.innerText || "";
+      const textBlob = new Blob([plainText], { type: 'text/plain' });
       
       await navigator.clipboard.write([
         new ClipboardItem({
