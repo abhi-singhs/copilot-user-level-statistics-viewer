@@ -46,7 +46,7 @@ jobs:
           commit-message: "Update plugin versions"
           branch: automated/plugin-versions-update
           delete-branch: true
-          title: 'Update Plugin Versions'
+          title: Update Plugin Versions
           body: |
             This PR updates the plugin version information for JetBrains and VS Code extensions.
             
