@@ -54,9 +54,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: squash
           pull-request-number: ${{ github.event.pull_request.number }}
-
-      - name: Auto-merge PR when checks pass
-        uses: pascalgn/automerge-action@v0.16.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_METHOD: squash
