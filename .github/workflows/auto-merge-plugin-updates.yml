@@ -48,6 +48,12 @@ jobs:
               core.setFailed('PR changes files beyond allowed plugin data JSONs.');
             }
 
+      - name: Verify PR author
+        run: |
+          if [[ "${{ github.event.pull_request.user.login }}" != "github-actions[bot]" ]]; then
+            echo "Auto-merge only allowed for github-actions bot"
+            exit 1
+          fi
       - name: Enable auto-merge
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
