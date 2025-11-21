@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 ---
 
 # Lint the code

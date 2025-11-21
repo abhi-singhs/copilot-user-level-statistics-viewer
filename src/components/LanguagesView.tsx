@@ -71,12 +71,13 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
   const totalUsers = Math.max(...languages.map(lang => lang.uniqueUsers), 0);
   const totalLocAdded = languages.reduce((sum, lang) => sum + lang.locAdded, 0);
   const totalLocDeleted = languages.reduce((sum, lang) => sum + lang.locDeleted, 0);
-  const totalLocSuggestedToAdd = languages.reduce((sum, lang) => sum + lang.locSuggestedToAdd, 0);
-  const totalLocSuggestedToDelete = languages.reduce((sum, lang) => sum + lang.locSuggestedToDelete, 0);
+
+  const totalNetLocImpact = totalLocAdded - totalLocDeleted;
 
   // Create sorted lists for the two tables
   const languagesByGenerations = [...languages].sort((a, b) => b.totalGenerations - a.totalGenerations);
   const languagesByUsers = [...languages].sort((a, b) => b.uniqueUsers - a.uniqueUsers);
+  const languagesByNetLocImpact = [...languages].sort((a, b) => (b.locAdded - b.locDeleted) - (a.locAdded - a.locDeleted));
 
   // Determine how many items to show
   const maxItemsToShow = 10;
@@ -129,16 +130,11 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
           label="LOC Deleted"
           accent="rose"
         />
-        <DashboardStatsCard
-          value={totalLocSuggestedToAdd}
-          label="Suggested Add"
-          accent="teal"
-        />
-        <DashboardStatsCard
-          value={totalLocSuggestedToDelete}
-          label="Suggested Delete"
-          accent="indigo"
-        />
+          <DashboardStatsCard
+            value={totalNetLocImpact}
+            label="Net LOC Impact"
+            accent={totalNetLocImpact >= 0 ? 'green' : 'rose'}
+          />
       </div>
 
       {/* Two Column Layout for Tables */}
@@ -268,6 +264,79 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
         </div>
       </div>
 
+      {/* Net Productivity Impact by Language */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Net Productivity Impact by Language</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Net LOC impact estimates how much accepted code Copilot is changing per language, combining lines of code added and deleted.
+        </p>
+        <ExpandableTableSection
+          items={languagesByNetLocImpact}
+          initialCount={maxItemsToShow}
+          buttonCollapsedLabel={(total) => `Show All ${total} Languages`}
+          buttonExpandedLabel="Show Less"
+        >
+          {({ visibleItems }) => (
+            <div className="overflow-x-auto">
+              <table className="w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rank
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Language
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Net LOC Impact
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Generations
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acceptance Rate
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {visibleItems.map((lang) => {
+                    const acceptanceRate = lang.totalGenerations > 0
+                      ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
+                      : '0.0';
+                    const netLocImpact = lang.locAdded - lang.locDeleted;
+                    const rank = languagesByNetLocImpact.findIndex((candidate) => candidate === lang) + 1;
+
+                    const impactColor = netLocImpact > 0 ? 'text-green-600' : netLocImpact < 0 ? 'text-rose-600' : 'text-gray-500';
+
+                    return (
+                      <tr key={lang.language} className="hover:bg-gray-50">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{rank}</div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{lang.language}</div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className={`text-sm font-medium ${impactColor}`}>
+                            {netLocImpact.toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{lang.totalGenerations.toLocaleString()}</div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{acceptanceRate}%</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </ExpandableTableSection>
+      </div>
+
       {/* Full Languages Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Languages Breakdown</h3>
@@ -343,7 +412,7 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
                       <button onClick={() => handleSort('locSuggestedToAdd')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Add {getSortIcon('locSuggestedToAdd')}</button>
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button onClick={() => handleSort('locSuggestedToDelete')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Delete {getSortIcon('locSuggestedToDelete')}</button>
+                      Net LOC Impact
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Acceptance Rate
@@ -355,6 +424,9 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
                     const acceptanceRate = lang.totalGenerations > 0 
                       ? ((lang.totalAcceptances / lang.totalGenerations) * 100).toFixed(1)
                       : '0.0';
+
+                    const netLocImpact = lang.locAdded - lang.locDeleted;
+                    const impactColor = netLocImpact > 0 ? 'text-green-600' : netLocImpact < 0 ? 'text-rose-600' : 'text-gray-500';
 
                     return (
                       <tr key={lang.language} className="hover:bg-gray-50">
@@ -376,7 +448,11 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locAdded.toLocaleString()}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locDeleted.toLocaleString()}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToAdd.toLocaleString()}</div></td>
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900">{lang.locSuggestedToDelete.toLocaleString()}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className={`text-sm font-medium ${impactColor}`}>
+                            {netLocImpact.toLocaleString()}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{acceptanceRate}%</div>
                         </td>

@@ -60,6 +60,25 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
   const totalInteractions = userMetrics.reduce((sum, metric) => sum + metric.user_initiated_interaction_count, 0);
   const totalGeneration = userMetrics.reduce((sum, metric) => sum + metric.code_generation_activity_count, 0);
   const totalAcceptance = userMetrics.reduce((sum, metric) => sum + metric.code_acceptance_activity_count, 0);
+  const totalStandardModelRequests = userMetrics.reduce((sum, metric) => {
+    return sum + metric.totals_by_model_feature
+      .filter(modelFeature => {
+        const model = modelFeature.model.toLowerCase();
+        const multiplier = getModelMultiplier(model);
+        return model !== 'unknown' && model !== '' && multiplier === 0;
+      })
+      .reduce((innerSum, modelFeature) => innerSum + modelFeature.user_initiated_interaction_count, 0);
+  }, 0);
+
+  const totalPremiumModelRequests = userMetrics.reduce((sum, metric) => {
+    return sum + metric.totals_by_model_feature
+      .filter(modelFeature => {
+        const model = modelFeature.model.toLowerCase();
+        const multiplier = getModelMultiplier(model);
+        return model !== 'unknown' && model !== '' && multiplier > 0;
+      })
+      .reduce((innerSum, modelFeature) => innerSum + modelFeature.user_initiated_interaction_count, 0);
+  }, 0);
 
 
   const daysActive = userMetrics.length;
@@ -657,6 +676,16 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
           value={totalAcceptance}
           label="Code Acceptance"
           accent="purple"
+        />
+        <DashboardStatsCard
+          value={totalStandardModelRequests}
+          label="Standard Model Requests"
+          accent="amber"
+        />
+        <DashboardStatsCard
+          value={totalPremiumModelRequests}
+          label="Premium Model Requests"
+          accent="rose"
         />
         <DashboardStatsCard
           value={daysActive}
