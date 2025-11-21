@@ -6,7 +6,7 @@ import ModeImpactChart from './charts/ModeImpactChart';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import PremiumModelsUsageChart from './charts/PremiumModelsUsageChart';
 import type { CopilotMetrics } from '../types/metrics';
-import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricsParser';
+import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
 import { isPremiumModel } from '../domain/modelConfig';
 
 interface CustomerEmailViewProps {

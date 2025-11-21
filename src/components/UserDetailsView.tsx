@@ -7,7 +7,7 @@ import { formatIDEName } from '../utils/ideIcons';
 import IDEActivityChart from './charts/IDEActivityChart';
 import ModeImpactChart from './charts/ModeImpactChart';
 import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
-import { calculateDailyPRUAnalysis, calculateJoinedImpactData } from '../utils/metricsParser';
+import { calculateDailyPRUAnalysis, calculateJoinedImpactData } from '../utils/metricCalculators';
 import { SERVICE_VALUE_RATE, getModelMultiplier } from '../domain/modelConfig';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
 import PRUModelUsageChart from './charts/PRUModelUsageChart';

@@ -7,7 +7,7 @@ import MetricTile from './ui/MetricTile';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
 import InsightsCard from './ui/InsightsCard';
-import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricsParser';
+import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricCalculators';
 import type { MetricsStats, CopilotMetrics } from '../types/metrics';
 
 interface CopilotAdoptionViewProps {

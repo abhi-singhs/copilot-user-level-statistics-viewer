@@ -9,7 +9,7 @@ import type {
   DailyModelUsageData,
   DailyPRUAnalysisData,
   ModelFeatureDistributionData
-} from '../utils/metricsParser';
+} from '../utils/metricCalculators';
 
 interface PRUUsageAnalysisViewProps {
   modelUsageData: DailyModelUsageData[];

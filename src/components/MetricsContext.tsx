@@ -14,7 +14,7 @@ import {
   AgentImpactData,
   CodeCompletionImpactData,
   ModeImpactData
-} from '../utils/metricsParser';
+} from '../utils/metricCalculators';
 import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 
 // Strongly typed shape of the filtered metrics data shared via context.

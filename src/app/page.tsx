@@ -2,12 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { CopilotMetrics, MetricsStats } from '../types/metrics';
-import { 
-  parseMetricsStream,
-  calculateStats, 
-  aggregateMetrics
-} from '../utils/metricsParser';
-import { getFilteredDateRange } from '../utils/dateFilters';
+import { parseMetricsStream } from '../utils/metricsParser';
+import { calculateStats } from '../utils/metricCalculators';
+import { useMetricsProcessing } from '../hooks/useMetricsProcessing';
 import UniqueUsersView from '../components/UniqueUsersView';
 import UserDetailsView from '../components/UserDetailsView';
 import LanguagesView from '../components/LanguagesView';
@@ -46,49 +43,12 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
 
   // Calculate filtered data based on date range and language filters
-  const filteredData = useMemo(() => {
-    if (!rawMetrics.length || !originalStats) {
-      return {
-        metrics: [],
-        stats: null,
-        userSummaries: [],
-        engagementData: [],
-        chatUsersData: [],
-        chatRequestsData: [],
-        languageStats: [],
-        modelUsageData: [],
-        featureAdoptionData: null,
-        pruAnalysisData: [],
-        agentModeHeatmapData: [],
-        modelFeatureDistributionData: [],
-        agentImpactData: [],
-        codeCompletionImpactData: [],
-        editModeImpactData: [],
-        inlineModeImpactData: [],
-        askModeImpactData: [],
-        joinedImpactData: []
-      };
-    }
-
-    const aggregated = aggregateMetrics(rawMetrics, {
-      removeUnknownLanguages,
-      dateFilter: dateRangeFilter,
-      reportEndDay: originalStats.reportEndDay
-    });
-
-    // Update the date range in stats based on filter
-    const { startDay, endDay } = getFilteredDateRange(dateRangeFilter, originalStats.reportStartDay, originalStats.reportEndDay);
-    const updatedStats = {
-      ...aggregated.stats,
-      reportStartDay: startDay,
-      reportEndDay: endDay
-    };
-
-    return {
-      ...aggregated,
-      stats: updatedStats
-    };
-  }, [rawMetrics, originalStats, dateRangeFilter, removeUnknownLanguages]);
+  const filteredData = useMetricsProcessing(
+    rawMetrics,
+    originalStats,
+    dateRangeFilter,
+    removeUnknownLanguages
+  );
 
   const { 
     metrics, 

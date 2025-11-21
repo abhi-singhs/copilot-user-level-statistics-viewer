@@ -1,6 +1,6 @@
 'use client';
 
-import { LanguageStats } from '../utils/metricsParser';
+import { LanguageStats } from '../utils/metricCalculators';
 import { useState } from 'react';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
