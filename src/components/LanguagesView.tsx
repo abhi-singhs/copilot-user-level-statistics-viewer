@@ -71,8 +71,6 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
   const totalUsers = Math.max(...languages.map(lang => lang.uniqueUsers), 0);
   const totalLocAdded = languages.reduce((sum, lang) => sum + lang.locAdded, 0);
   const totalLocDeleted = languages.reduce((sum, lang) => sum + lang.locDeleted, 0);
-  const totalLocSuggestedToAdd = languages.reduce((sum, lang) => sum + lang.locSuggestedToAdd, 0);
-  const totalLocSuggestedToDelete = languages.reduce((sum, lang) => sum + lang.locSuggestedToDelete, 0);
 
   const totalNetLocImpact = totalLocAdded - totalLocDeleted;
 
@@ -137,16 +135,6 @@ export default function LanguagesView({ languages, onBack }: LanguagesViewProps)
             label="Net LOC Impact"
             accent={totalNetLocImpact >= 0 ? 'green' : 'rose'}
           />
-        <DashboardStatsCard
-          value={totalLocSuggestedToAdd}
-          label="Suggested Add"
-          accent="teal"
-        />
-        <DashboardStatsCard
-          value={totalLocSuggestedToDelete}
-          label="Suggested Delete"
-          accent="indigo"
-        />
       </div>
 
       {/* Two Column Layout for Tables */}
