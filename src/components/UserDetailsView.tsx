@@ -18,6 +18,7 @@ import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
 import ActivityCalendar from './ui/ActivityCalendar';
 import DayDetailsModal from './ui/DayDetailsModal';
+import type { VoidCallback } from '../types/events';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler);
 
@@ -25,7 +26,7 @@ interface UserDetailsViewProps {
   userMetrics: CopilotMetrics[];
   userLogin: string;
   userId: number;
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function UserDetailsView({ userMetrics, userLogin, userId, onBack }: UserDetailsViewProps) {

@@ -8,6 +8,7 @@ import PremiumModelsUsageChart from './charts/PremiumModelsUsageChart';
 import type { CopilotMetrics } from '../types/metrics';
 import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
 import { isPremiumModel } from '../domain/modelConfig';
+import type { VoidCallback } from '../types/events';
 
 interface CustomerEmailViewProps {
   metrics: CopilotMetrics[];
@@ -16,7 +17,7 @@ interface CustomerEmailViewProps {
   agentImpactData: AgentImpactData[];
   codeCompletionImpactData: CodeCompletionImpactData[];
   askModeImpactData: ModeImpactData[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function CustomerEmailView({

@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
+import type { VoidCallback } from '../../types/events';
+
 // Simple className combiner (avoids adding a dependency like clsx/twMerge)
 function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(' ');
@@ -129,7 +131,7 @@ export interface MetricTileProps {
   icon: React.ReactNode;
   accent: AccentColor;
   interactive?: boolean;
-  onClick?: () => void;
+  onClick?: VoidCallback;
   href?: string; // future usage
   size?: 'lg' | 'md';
   showArrow?: boolean; // defaults to true when interactive

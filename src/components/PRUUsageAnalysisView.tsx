@@ -10,12 +10,13 @@ import type {
   DailyPRUAnalysisData,
   ModelFeatureDistributionData
 } from '../utils/metricCalculators';
+import type { VoidCallback } from '../types/events';
 
 interface PRUUsageAnalysisViewProps {
   modelUsageData: DailyModelUsageData[];
   pruAnalysisData: DailyPRUAnalysisData[];
   modelFeatureDistributionData: ModelFeatureDistributionData[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function PRUUsageAnalysisView({

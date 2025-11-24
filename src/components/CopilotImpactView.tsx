@@ -4,6 +4,7 @@ import React from 'react';
 import ModeImpactChart from './charts/ModeImpactChart';
 import SectionHeader from './ui/SectionHeader';
 import type { AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
+import type { VoidCallback } from '../types/events';
 
 interface CopilotImpactViewProps {
   agentImpactData: AgentImpactData[];
@@ -12,7 +13,7 @@ interface CopilotImpactViewProps {
   inlineModeImpactData: ModeImpactData[];
   askModeImpactData: ModeImpactData[];
   joinedImpactData: ModeImpactData[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function CopilotImpactView({ agentImpactData, codeCompletionImpactData, editModeImpactData, inlineModeImpactData, askModeImpactData, joinedImpactData, onBack }: CopilotImpactViewProps) {

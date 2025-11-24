@@ -1,55 +1,33 @@
 'use client';
 
 import { UserSummary, CopilotMetrics } from '../types/metrics';
-import { useState } from 'react';
 import { useUsernameTrieSearch } from '../hooks/useUsernameTrieSearch';
+import { useSortableTable } from '../hooks/useSortableTable';
 import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
+import type { VoidCallback } from '../types/events';
 
 interface UniqueUsersViewProps {
   users: UserSummary[];
   rawMetrics: CopilotMetrics[];
-  onBack: () => void;
+  onBack: VoidCallback;
   onUserClick: (userLogin: string, userId: number, userMetrics: CopilotMetrics[]) => void;
 }
 
 type SortField = 'user_login' | 'total_user_initiated_interactions' | 'total_code_generation_activities' | 'total_code_acceptance_activities' | 'days_active' | 'total_loc_added' | 'total_loc_deleted' | 'total_loc_suggested_to_add' | 'total_loc_suggested_to_delete';
-type SortDirection = 'asc' | 'desc';
 
 export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick }: UniqueUsersViewProps) {
-  const [sortField, setSortField] = useState<SortField>('total_user_initiated_interactions');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const { searchQuery, setSearchQuery, filteredUsers } = useUsernameTrieSearch(users);
+  const { sortField, sortDirection, sortedItems: sortedUsers, handleSort } = useSortableTable<UserSummary, SortField>(
+    filteredUsers,
+    'total_user_initiated_interactions',
+    'desc'
+  );
 
   const handleUserClick = (user: UserSummary) => {
     const userMetrics = rawMetrics.filter(metric => metric.user_id === user.user_id);
     onUserClick(user.user_login, user.user_id, userMetrics);
   };
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
-  };
-
-  const sortedUsers = [...filteredUsers].sort((a, b) => {
-    let aVal = a[sortField];
-    let bVal = b[sortField];
-    
-    if (typeof aVal === 'string') {
-      aVal = aVal.toLowerCase();
-      bVal = (bVal as string).toLowerCase();
-    }
-    
-    if (sortDirection === 'asc') {
-      return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
-    } else {
-      return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
-    }
-  });
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) {
@@ -70,6 +48,16 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
       </svg>
     );
   };
+
+  const renderSortButton = (field: SortField, label: string) => (
+    <button
+      onClick={() => handleSort(field)}
+      className="flex items-center hover:text-gray-700 focus:outline-none"
+    >
+      {label}
+      {getSortIcon(field)}
+    </button>
+  );
   // Calculate summary statistics
   const totalInteractions = users.reduce((sum, user) => sum + user.total_user_initiated_interactions, 0);
   const totalGeneration = users.reduce((sum, user) => sum + user.total_code_generation_activities, 0);
@@ -147,58 +135,28 @@ export default function UniqueUsersView({ users, rawMetrics, onBack, onUserClick
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
-                <button
-                  onClick={() => handleSort('user_login')}
-                  className="flex items-center hover:text-gray-700 focus:outline-none"
-                >
-                  User
-                  {getSortIcon('user_login')}
-                </button>
+                {renderSortButton('user_login', 'User')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button
-                  onClick={() => handleSort('total_user_initiated_interactions')}
-                  className="flex items-center hover:text-gray-700 focus:outline-none"
-                >
-                  User Interactions
-                  {getSortIcon('total_user_initiated_interactions')}
-                </button>
+                {renderSortButton('total_user_initiated_interactions', 'User Interactions')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button
-                  onClick={() => handleSort('total_code_generation_activities')}
-                  className="flex items-center hover:text-gray-700 focus:outline-none"
-                >
-                  Code Generation
-                  {getSortIcon('total_code_generation_activities')}
-                </button>
+                {renderSortButton('total_code_generation_activities', 'Code Generation')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button
-                  onClick={() => handleSort('total_code_acceptance_activities')}
-                  className="flex items-center hover:text-gray-700 focus:outline-none"
-                >
-                  Code Acceptance
-                  {getSortIcon('total_code_acceptance_activities')}
-                </button>
+                {renderSortButton('total_code_acceptance_activities', 'Code Acceptance')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button onClick={() => handleSort('total_loc_added')} className="flex items-center hover:text-gray-700 focus:outline-none">LOC Added {getSortIcon('total_loc_added')}</button>
+                {renderSortButton('total_loc_added', 'LOC Added')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button onClick={() => handleSort('total_loc_deleted')} className="flex items-center hover:text-gray-700 focus:outline-none">LOC Deleted {getSortIcon('total_loc_deleted')}</button>
+                {renderSortButton('total_loc_deleted', 'LOC Deleted')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button onClick={() => handleSort('total_loc_suggested_to_add')} className="flex items-center hover:text-gray-700 focus:outline-none">Suggested Add {getSortIcon('total_loc_suggested_to_add')}</button>
+                {renderSortButton('total_loc_suggested_to_add', 'Suggested Add')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                <button
-                  onClick={() => handleSort('days_active')}
-                  className="flex items-center hover:text-gray-700 focus:outline-none"
-                >
-                  Days Active
-                  {getSortIcon('days_active')}
-                </button>
+                {renderSortButton('days_active', 'Days Active')}
               </th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
                 Features Used

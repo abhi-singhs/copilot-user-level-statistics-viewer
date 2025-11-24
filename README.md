@@ -2,7 +2,7 @@
 
 A modern web application for visualizing GitHub Copilot usage metrics data. Upload your GitHub Copilot metrics JSON files to view comprehensive analytics about user engagement, feature usage, and adoption patterns across your organization.
 
-![GitHub Copilot Metrics Viewer](https://img.shields.io/badge/Next.js-15.4.5-black?logo=next.js&logoColor=white)
+![GitHub Copilot Metrics Viewer](https://img.shields.io/badge/Next.js-15.4.7-black?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-blue?logo=tailwindcss&logoColor=white)
 
@@ -86,18 +86,26 @@ The application expects GitHub Copilot metrics JSON files with the following str
 
 ```typescript
 interface CopilotMetrics {
-  user_login: string;
+  report_start_day: string;
+  report_end_day: string;
+  day: string;
+  enterprise_id: string;
   user_id: number;
+  user_login: string;
   user_initiated_interaction_count: number;
   code_generation_activity_count: number;
   code_acceptance_activity_count: number;
-  generated_loc_sum: number;
-  accepted_loc_sum: number;
+  loc_added_sum: number;
+  loc_deleted_sum: number;
+  loc_suggested_to_add_sum: number;
+  loc_suggested_to_delete_sum: number;
   used_agent: boolean;
   used_chat: boolean;
   totals_by_ide: Array<{...}>;
   totals_by_feature: Array<{...}>;
-  // ... additional metrics
+  totals_by_language_feature: Array<{...}>;
+  totals_by_language_model: Array<{...}>;
+  totals_by_model_feature: Array<{...}>;
 }
 ```
 

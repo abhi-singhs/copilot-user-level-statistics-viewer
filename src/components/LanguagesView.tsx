@@ -5,10 +5,11 @@ import { useState } from 'react';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
 import DashboardStatsCard from './ui/DashboardStatsCard';
+import type { VoidCallback } from '../types/events';
 
 interface LanguagesViewProps {
   languages: LanguageStats[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 type SortField = 'language' | 'totalGenerations' | 'totalAcceptances' | 'totalEngagements' | 'uniqueUsers' | 'locAdded' | 'locDeleted' | 'locSuggestedToAdd' | 'locSuggestedToDelete';

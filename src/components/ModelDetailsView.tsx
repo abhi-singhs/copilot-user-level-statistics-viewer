@@ -6,9 +6,10 @@ import { useMetricsData } from './MetricsContext';
 import ModelsUsageChart from './charts/ModelsUsageChart';
 import InsightsCard from './ui/InsightsCard';
 import { KNOWN_MODELS } from '../domain/modelConfig';
+import type { VoidCallback } from '../types/events';
 
 interface ModelDetailsViewProps {
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function ModelDetailsView({ onBack }: ModelDetailsViewProps) {

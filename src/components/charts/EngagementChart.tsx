@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { DailyEngagementData } from '../../utils/metricCalculators';
+import ChartContainer from '../ui/ChartContainer';
 
 ChartJS.register(
   CategoryScale,
@@ -30,16 +31,17 @@ interface EngagementChartProps {
 }
 
 export default function EngagementChart({ data }: EngagementChartProps) {
-  if (data.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily User Engagement</h3>
-        <div className="text-center py-8 text-gray-500">
-          No engagement data available
-        </div>
-      </div>
-    );
-  }
+  const avgEngagement = data.length > 0 
+    ? Math.round((data.reduce((sum, d) => sum + d.engagementPercentage, 0) / data.length) * 100) / 100
+    : 0;
+
+  const maxEngagement = data.length > 0 
+    ? Math.max(...data.map(d => d.engagementPercentage))
+    : 0;
+
+  const minEngagement = data.length > 0 
+    ? Math.min(...data.map(d => d.engagementPercentage))
+    : 0;
 
   const chartData = {
     labels: data.map(d => {
@@ -124,47 +126,24 @@ export default function EngagementChart({ data }: EngagementChartProps) {
     },
   };
 
-  const avgEngagement = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.engagementPercentage, 0) / data.length) * 100) / 100
-    : 0;
-
-  const maxEngagement = data.length > 0 
-    ? Math.max(...data.map(d => d.engagementPercentage))
-    : 0;
-
-  const minEngagement = data.length > 0 
-    ? Math.min(...data.map(d => d.engagementPercentage))
-    : 0;
-
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily User Engagement</h3>
-          <p className="text-sm text-gray-600">
-            Percentage of total users active each day during the reporting period
-          </p>
+    <ChartContainer
+      title="Daily User Engagement"
+      description="Percentage of total users active each day during the reporting period"
+      stats={[
+        { label: 'Avg', value: `${avgEngagement}%` },
+        { label: 'Max', value: `${maxEngagement}%` },
+        { label: 'Min', value: `${minEngagement}%` },
+      ]}
+      isEmpty={data.length === 0}
+      emptyState="No engagement data available"
+      footer={
+        <div className="text-xs text-gray-500">
+          Total unique users in reporting period: {data[0]?.totalUsers || 0}
         </div>
-        <div className="text-right space-y-1">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg:</span> {avgEngagement}%
-          </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Max:</span> {maxEngagement}%
-          </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Min:</span> {minEngagement}%
-          </div>
-        </div>
-      </div>
-      
-      <div className="h-80">
-        <Line data={chartData} options={options} />
-      </div>
-      
-      <div className="mt-4 text-xs text-gray-500">
-        Total unique users in reporting period: {data[0]?.totalUsers || 0}
-      </div>
-    </div>
+      }
+    >
+      <Line data={chartData} options={options} />
+    </ChartContainer>
   );
 }

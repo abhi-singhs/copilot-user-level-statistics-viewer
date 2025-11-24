@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
+import type { VoidCallback } from '../../types/events';
 
 type Description = string | React.ReactNode;
 
 interface SectionHeaderProps {
   title: string;
   description?: Description;
-  onBack: () => void;
+  onBack: VoidCallback;
   className?: string;
   titleClassName?: string;
   descriptionClassName?: string;

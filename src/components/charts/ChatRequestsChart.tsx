@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { DailyChatRequestsData } from '../../utils/metricCalculators';
+import ChartContainer from '../ui/ChartContainer';
 
 ChartJS.register(
   CategoryScale,
@@ -30,16 +31,32 @@ interface ChatRequestsChartProps {
 }
 
 export default function ChatRequestsChart({ data }: ChatRequestsChartProps) {
-  if (data.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Chat Requests</h3>
-        <div className="text-center py-8 text-gray-500">
-          No chat request data available
-        </div>
-      </div>
-    );
-  }
+  const totalAskRequests = data.reduce((sum, d) => sum + d.askModeRequests, 0);
+  const totalAgentRequests = data.reduce((sum, d) => sum + d.agentModeRequests, 0);
+  const totalEditRequests = data.reduce((sum, d) => sum + d.editModeRequests, 0);
+  const totalInlineRequests = data.reduce((sum, d) => sum + d.inlineModeRequests, 0);
+  const grandTotal = totalAskRequests + totalAgentRequests + totalEditRequests + totalInlineRequests;
+
+  const avgAskRequests = data.length > 0 
+    ? Math.round((totalAskRequests / data.length) * 100) / 100
+    : 0;
+
+  const avgAgentRequests = data.length > 0 
+    ? Math.round((totalAgentRequests / data.length) * 100) / 100
+    : 0;
+
+  const avgEditRequests = data.length > 0 
+    ? Math.round((totalEditRequests / data.length) * 100) / 100
+    : 0;
+
+  const avgInlineRequests = data.length > 0 
+    ? Math.round((totalInlineRequests / data.length) * 100) / 100
+    : 0;
+
+  const maxAskRequests = data.length > 0 ? Math.max(...data.map(d => d.askModeRequests)) : 0;
+  const maxAgentRequests = data.length > 0 ? Math.max(...data.map(d => d.agentModeRequests)) : 0;
+  const maxEditRequests = data.length > 0 ? Math.max(...data.map(d => d.editModeRequests)) : 0;
+  const maxInlineRequests = data.length > 0 ? Math.max(...data.map(d => d.inlineModeRequests)) : 0;
 
   const chartData = {
     labels: data.map(d => {
@@ -176,80 +193,39 @@ export default function ChatRequestsChart({ data }: ChatRequestsChartProps) {
     },
   };
 
-  // Calculate summary statistics
-  const totalAskRequests = data.reduce((sum, d) => sum + d.askModeRequests, 0);
-  const totalAgentRequests = data.reduce((sum, d) => sum + d.agentModeRequests, 0);
-  const totalEditRequests = data.reduce((sum, d) => sum + d.editModeRequests, 0);
-  const totalInlineRequests = data.reduce((sum, d) => sum + d.inlineModeRequests, 0);
-  const grandTotal = totalAskRequests + totalAgentRequests + totalEditRequests + totalInlineRequests;
-
-  const avgAskRequests = data.length > 0 
-    ? Math.round((totalAskRequests / data.length) * 100) / 100
-    : 0;
-
-  const avgAgentRequests = data.length > 0 
-    ? Math.round((totalAgentRequests / data.length) * 100) / 100
-    : 0;
-
-  const avgEditRequests = data.length > 0 
-    ? Math.round((totalEditRequests / data.length) * 100) / 100
-    : 0;
-
-  const avgInlineRequests = data.length > 0 
-    ? Math.round((totalInlineRequests / data.length) * 100) / 100
-    : 0;
-
-  const maxAskRequests = data.length > 0 ? Math.max(...data.map(d => d.askModeRequests)) : 0;
-  const maxAgentRequests = data.length > 0 ? Math.max(...data.map(d => d.agentModeRequests)) : 0;
-  const maxEditRequests = data.length > 0 ? Math.max(...data.map(d => d.editModeRequests)) : 0;
-  const maxInlineRequests = data.length > 0 ? Math.max(...data.map(d => d.inlineModeRequests)) : 0;
-
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Chat Requests</h3>
-          <p className="text-sm text-gray-600">
-            Number of user-initiated chat interactions per mode each day
-          </p>
-        </div>
-        <div className="text-right space-y-1">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Ask:</span> {avgAskRequests}
+    <ChartContainer
+      title="Daily Chat Requests"
+      description="Number of user-initiated chat interactions per mode each day"
+      stats={[
+        { label: 'Avg Ask', value: avgAskRequests },
+        { label: 'Avg Agent', value: avgAgentRequests },
+        { label: 'Avg Edit', value: avgEditRequests },
+        { label: 'Avg Inline', value: avgInlineRequests },
+      ]}
+      isEmpty={data.length === 0}
+      emptyState="No chat request data available"
+      footer={
+        <div className="grid grid-cols-5 gap-4 text-xs text-gray-500">
+          <div>
+            <span className="font-medium text-green-600">Ask Mode:</span> {totalAskRequests} total (max {maxAskRequests}/day)
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Agent:</span> {avgAgentRequests}
+          <div>
+            <span className="font-medium text-purple-600">Agent Mode:</span> {totalAgentRequests} total (max {maxAgentRequests}/day)
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Edit:</span> {avgEditRequests}
+          <div>
+            <span className="font-medium text-amber-600">Edit Mode:</span> {totalEditRequests} total (max {maxEditRequests}/day)
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Inline:</span> {avgInlineRequests}
+          <div>
+            <span className="font-medium text-red-600">Inline Mode:</span> {totalInlineRequests} total (max {maxInlineRequests}/day)
+          </div>
+          <div>
+            <span className="font-medium text-gray-600">All Modes:</span> {grandTotal} total requests
           </div>
         </div>
-      </div>
-      
-      <div className="h-80">
-        <Line data={chartData} options={options} />
-      </div>
-      
-      <div className="mt-4 grid grid-cols-5 gap-4 text-xs text-gray-500">
-        <div>
-          <span className="font-medium text-green-600">Ask Mode:</span> {totalAskRequests} total (max {maxAskRequests}/day)
-        </div>
-        <div>
-          <span className="font-medium text-purple-600">Agent Mode:</span> {totalAgentRequests} total (max {maxAgentRequests}/day)
-        </div>
-        <div>
-          <span className="font-medium text-amber-600">Edit Mode:</span> {totalEditRequests} total (max {maxEditRequests}/day)
-        </div>
-        <div>
-          <span className="font-medium text-red-600">Inline Mode:</span> {totalInlineRequests} total (max {maxInlineRequests}/day)
-        </div>
-        <div>
-          <span className="font-medium text-gray-600">All Modes:</span> {grandTotal} total requests
-        </div>
-      </div>
-    </div>
+      }
+    >
+      <Line data={chartData} options={options} />
+    </ChartContainer>
   );
 }

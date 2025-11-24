@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { DailyChatUsersData } from '../../utils/metricCalculators';
+import ChartContainer from '../ui/ChartContainer';
 
 ChartJS.register(
   CategoryScale,
@@ -30,16 +31,26 @@ interface ChatUsersChartProps {
 }
 
 export default function ChatUsersChart({ data }: ChatUsersChartProps) {
-  if (data.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Chat Users Trends</h3>
-        <div className="text-center py-8 text-gray-500">
-          No chat user data available
-        </div>
-      </div>
-    );
-  }
+  const avgAskMode = data.length > 0 
+    ? Math.round((data.reduce((sum, d) => sum + d.askModeUsers, 0) / data.length) * 100) / 100
+    : 0;
+
+  const avgAgentMode = data.length > 0 
+    ? Math.round((data.reduce((sum, d) => sum + d.agentModeUsers, 0) / data.length) * 100) / 100
+    : 0;
+
+  const avgEditMode = data.length > 0 
+    ? Math.round((data.reduce((sum, d) => sum + d.editModeUsers, 0) / data.length) * 100) / 100
+    : 0;
+
+  const avgInlineMode = data.length > 0 
+    ? Math.round((data.reduce((sum, d) => sum + d.inlineModeUsers, 0) / data.length) * 100) / 100
+    : 0;
+
+  const maxAskMode = data.length > 0 ? Math.max(...data.map(d => d.askModeUsers)) : 0;
+  const maxAgentMode = data.length > 0 ? Math.max(...data.map(d => d.agentModeUsers)) : 0;
+  const maxEditMode = data.length > 0 ? Math.max(...data.map(d => d.editModeUsers)) : 0;
+  const maxInlineMode = data.length > 0 ? Math.max(...data.map(d => d.inlineModeUsers)) : 0;
 
   const chartData = {
     labels: data.map(d => {
@@ -176,71 +187,36 @@ export default function ChatUsersChart({ data }: ChatUsersChartProps) {
     },
   };
 
-  // Calculate summary statistics
-  const avgAskMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.askModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const avgAgentMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.agentModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const avgEditMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.editModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const avgInlineMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.inlineModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const maxAskMode = data.length > 0 ? Math.max(...data.map(d => d.askModeUsers)) : 0;
-  const maxAgentMode = data.length > 0 ? Math.max(...data.map(d => d.agentModeUsers)) : 0;
-  const maxEditMode = data.length > 0 ? Math.max(...data.map(d => d.editModeUsers)) : 0;
-  const maxInlineMode = data.length > 0 ? Math.max(...data.map(d => d.inlineModeUsers)) : 0;
-
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Chat Users Trends</h3>
-          <p className="text-sm text-gray-600">
-            Number of unique users using different chat modes each day
-          </p>
-        </div>
-        <div className="text-right space-y-1">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Ask:</span> {avgAskMode}
+    <ChartContainer
+      title="Daily Chat Users Trends"
+      description="Number of unique users using different chat modes each day"
+      stats={[
+        { label: 'Avg Ask', value: avgAskMode },
+        { label: 'Avg Agent', value: avgAgentMode },
+        { label: 'Avg Edit', value: avgEditMode },
+        { label: 'Avg Inline', value: avgInlineMode },
+      ]}
+      isEmpty={data.length === 0}
+      emptyState="No chat user data available"
+      footer={
+        <div className="grid grid-cols-4 gap-4 text-xs text-gray-500">
+          <div>
+            <span className="font-medium text-green-600">Ask Mode:</span> Max {maxAskMode} users
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Agent:</span> {avgAgentMode}
+          <div>
+            <span className="font-medium text-purple-600">Agent Mode:</span> Max {maxAgentMode} users
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Edit:</span> {avgEditMode}
+          <div>
+            <span className="font-medium text-amber-600">Edit Mode:</span> Max {maxEditMode} users
           </div>
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">Avg Inline:</span> {avgInlineMode}
+          <div>
+            <span className="font-medium text-red-600">Inline Mode:</span> Max {maxInlineMode} users
           </div>
         </div>
-      </div>
-      
-      <div className="h-80">
-        <Line data={chartData} options={options} />
-      </div>
-      
-      <div className="mt-4 grid grid-cols-4 gap-4 text-xs text-gray-500">
-        <div>
-          <span className="font-medium text-green-600">Ask Mode:</span> Max {maxAskMode} users
-        </div>
-        <div>
-          <span className="font-medium text-purple-600">Agent Mode:</span> Max {maxAgentMode} users
-        </div>
-        <div>
-          <span className="font-medium text-amber-600">Edit Mode:</span> Max {maxEditMode} users
-        </div>
-        <div>
-          <span className="font-medium text-red-600">Inline Mode:</span> Max {maxInlineMode} users
-        </div>
-      </div>
-    </div>
+      }
+    >
+      <Line data={chartData} options={options} />
+    </ChartContainer>
   );
 }

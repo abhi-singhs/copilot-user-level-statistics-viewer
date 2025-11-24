@@ -1,120 +1,31 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import AgentModeHeatmapChart from './charts/AgentModeHeatmapChart';
 import MetricTile from './ui/MetricTile';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
 import InsightsCard from './ui/InsightsCard';
+import { usePluginVersions } from '../hooks/usePluginVersions';
 import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricCalculators';
 import type { MetricsStats, CopilotMetrics } from '../types/metrics';
+import type { VoidCallback } from '../types/events';
 
 interface CopilotAdoptionViewProps {
   featureAdoptionData: FeatureAdoptionData | null;
   agentModeHeatmapData: AgentModeHeatmapData[];
   stats: MetricsStats;
   metrics: CopilotMetrics[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeatmapData, stats, metrics, onBack }: CopilotAdoptionViewProps) {
-  // JetBrains plugin updates state
-  interface JetBrainsPluginUpdate {
-    version: string;
-    releaseDate: string; // ISO string
-  }
+  const { versions: jetbrainsUpdates, isLoading: jbLoading, error: jbError } = usePluginVersions('jetbrains');
+  const { versions: vscodeVersions, isLoading: vsLoading, error: vsError } = usePluginVersions('vscode');
 
-  const [jetbrainsUpdates, setJetbrainsUpdates] = useState<JetBrainsPluginUpdate[] | null>(null);
-  const [jbError, setJbError] = useState<string | null>(null);
-  const [jbLoading, setJbLoading] = useState<boolean>(false);
-  // VS Code extension versions state
-  interface VsCodeExtensionVersion {
-    version: string;
-    releaseDate: string; // ISO string
-  }
-
-  const [vscodeVersions, setVsCodeVersions] = useState<VsCodeExtensionVersion[] | null>(null);
-  const [vsError, setVsError] = useState<string | null>(null);
-  const [vsLoading, setVsLoading] = useState<boolean>(false);
   const [expandedUsernames, setExpandedUsernames] = useState<Set<string>>(new Set());
   const [expandedVsUsernames, setExpandedVsUsernames] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadUpdates() {
-      try {
-        setJbLoading(true);
-
-        const res = await fetch('/data/jetbrains.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: unknown = await res.json();
-
-        if (!data || typeof data !== 'object' || !Array.isArray((data as { versions?: unknown }).versions)) {
-          throw new Error('Unexpected response shape');
-        }
-
-        const versionsArray = (data as { versions: unknown[] }).versions;
-
-        const mapped: JetBrainsPluginUpdate[] = versionsArray.map((item) => {
-          const obj = item as { version?: unknown; releaseDate?: unknown };
-          return {
-            version: typeof obj.version === 'string' ? obj.version : 'n/a',
-            releaseDate: typeof obj.releaseDate === 'string' ? obj.releaseDate : String(obj.releaseDate ?? ''),
-          };
-        });
-
-        if (isMounted) setJetbrainsUpdates(mapped);
-      } catch (e) {
-        if (isMounted) setJbError((e as Error).message);
-      } finally {
-        if (isMounted) setJbLoading(false);
-      }
-    }
-    loadUpdates();
-    return () => { isMounted = false; };
-  }, []);
-
-  // VS Code versions: load rolling history from vscode.json
-  useEffect(() => {
-    let isMounted = true;
-    async function loadVsCodeVersions() {
-      try {
-        setVsLoading(true);
-
-        const res = await fetch('/data/vscode.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: unknown = await res.json();
-
-        if (!data || typeof data !== 'object' || !Array.isArray((data as { versions?: unknown }).versions)) {
-          throw new Error('Unexpected response shape');
-        }
-
-        const versionsArray = (data as { versions: unknown[] }).versions;
-
-        const mapped: VsCodeExtensionVersion[] = versionsArray.map((item) => {
-          const obj = item as { version?: unknown; releaseDate?: unknown };
-          return {
-            version: typeof obj.version === 'string' ? obj.version : 'n/a',
-            releaseDate:
-              typeof obj.releaseDate === 'string'
-                ? obj.releaseDate
-                : String(obj.releaseDate ?? ''),
-          };
-        });
-
-        if (isMounted) setVsCodeVersions(mapped);
-      } catch (e) {
-        if (isMounted) setVsError((e as Error).message);
-      } finally {
-        if (isMounted) setVsLoading(false);
-      }
-    }
-    loadVsCodeVersions();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Plugin version analysis
   const pluginVersionAnalysis = React.useMemo(() => {
@@ -196,7 +107,6 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
 
   // Get latest 8 stable (non-nightly) versions from JetBrains data
   const latestEightUpdates = React.useMemo(() => {
-    if (!jetbrainsUpdates) return [];
     const stable = jetbrainsUpdates.filter(u => !u.version.toLowerCase().endsWith('-nightly'));
     return stable.slice(0, 8);
   }, [jetbrainsUpdates]);
@@ -205,20 +115,18 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
 
   // VS Code latest versions window from rolling history
   const latestVsCodeVersions = React.useMemo(
-    () => (vscodeVersions || []).map(v => v.version),
+    () => vscodeVersions.map(v => v.version),
     [vscodeVersions],
   );
 
   // Map of version -> release date (cdate) for quick lookup (stable only)
   const jetbrainsVersionDateMap = React.useMemo(() => {
     const map = new Map<string, string>();
-    if (jetbrainsUpdates) {
-      for (const u of jetbrainsUpdates) {
-        const vLower = u.version.toLowerCase();
-        if (vLower.endsWith('-nightly')) continue; // exclude nightly builds
-        if (!map.has(u.version)) {
-          map.set(u.version, u.releaseDate);
-        }
+    for (const u of jetbrainsUpdates) {
+      const vLower = u.version.toLowerCase();
+      if (vLower.endsWith('-nightly')) continue;
+      if (!map.has(u.version)) {
+        map.set(u.version, u.releaseDate);
       }
     }
     return map;
@@ -460,7 +368,7 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
                         <td className="px-4 py-3 text-red-600" colSpan={2}>Failed to load plugin versions: {jbError}</td>
                       </tr>
                     )}
-                    {!jbLoading && !jbError && jetbrainsUpdates && jetbrainsUpdates.length === 0 && (
+                    {!jbLoading && !jbError && jetbrainsUpdates.length === 0 && (
                       <tr>
                         <td className="px-4 py-3 text-gray-500" colSpan={2}>No version data available.</td>
                       </tr>
@@ -587,7 +495,7 @@ export default function CopilotAdoptionView({ featureAdoptionData, agentModeHeat
                         </td>
                       </tr>
                     )}
-                    {!vsLoading && !vsError && vscodeVersions && vscodeVersions.length === 0 && (
+                    {!vsLoading && !vsError && vscodeVersions.length === 0 && (
                       <tr>
                         <td className="px-4 py-3 text-gray-500" colSpan={2}>No version data available.</td>
                       </tr>

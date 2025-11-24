@@ -16,6 +16,7 @@ import { Line } from 'react-chartjs-2';
 import { CopilotMetrics } from '../types/metrics';
 import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
+import type { VoidCallback } from '../types/events';
 
 ChartJS.register(
   CategoryScale,
@@ -37,7 +38,7 @@ interface DataQualityUser {
 
 interface DataQualityAnalysisViewProps {
   metrics: CopilotMetrics[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 interface UnknownModelTrendPoint {

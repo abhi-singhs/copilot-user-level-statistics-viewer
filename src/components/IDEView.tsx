@@ -5,6 +5,13 @@ import { CopilotMetrics } from '../types/metrics';
 import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
 import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
+import {
+  DataTable,
+  DataTableHeader,
+  DataTableBody,
+  DataTableColumn,
+} from './ui/DataTable';
+import type { VoidCallback } from '../types/events';
 
 interface IDEStats {
   ide: string;
@@ -20,11 +27,10 @@ interface IDEStats {
 
 interface IDEViewProps {
   metrics: CopilotMetrics[];
-  onBack: () => void;
+  onBack: VoidCallback;
 }
 
 export default function IDEView({ metrics, onBack }: IDEViewProps) {
-  // Calculate IDE statistics
   const calculateIDEStats = (): IDEStats[] => {
     const ideMap = new Map<string, {
       users: Set<number>;
@@ -84,7 +90,6 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
   const idesByUsers = [...ideStats].sort((a, b) => b.uniqueUsers - a.uniqueUsers);
   const idesByEngagements = [...ideStats].sort((a, b) => b.totalEngagements - a.totalEngagements);
 
-  // Calculate additional summary metrics
   const totalIDEs = ideStats.length;
   const sumUsersPerIDE = ideStats.reduce((sum, ide) => sum + ide.uniqueUsers, 0);
   const averageUsersPerIDE = totalIDEs > 0 ? Math.round((sumUsersPerIDE / totalIDEs) * 10) / 10 : 0;
@@ -101,92 +106,54 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
   }
 
   const multiIDEUsersCount = Array.from(userIdToIDEs.values()).filter(ides => ides.size > 1).length;
-
   const totalUniqueIDEUsers = userIdToIDEs.size;
-
   const topIDE = idesByUsers[0];
   const topIDEUserShare = topIDE && totalUniqueIDEUsers > 0
     ? Math.round((topIDE.uniqueUsers / totalUniqueIDEUsers) * 1000) / 10
     : 0;
 
-  const renderIDETable = (ides: IDEStats[], title: string, sortBy: 'users' | 'engagements') => (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                IDE
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {sortBy === 'users' ? 'Unique Users' : 'Total Engagements'}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Generations
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acceptances
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Added</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LOC Deleted</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Add</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested Delete</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acceptance Rate
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {ides.map((ide, index) => {
-              const IDEIcon = getIDEIcon(ide.ide);
-              const acceptanceRate = ide.totalGenerations > 0 
-                ? (ide.totalAcceptances / ide.totalGenerations * 100).toFixed(1)
-                : '0.0';
-              
-              return (
-                <tr key={ide.ide} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 mr-3">
-                        <IDEIcon />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatIDEName(ide.ide)}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {ide.ide}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {sortBy === 'users' ? ide.uniqueUsers.toLocaleString() : ide.totalEngagements.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ide.totalGenerations.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {ide.totalAcceptances.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locAdded.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locDeleted.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToAdd.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToDelete.toLocaleString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {acceptanceRate}%
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+  const renderIDERow = (ide: IDEStats, sortBy: 'users' | 'engagements') => {
+    const IDEIcon = getIDEIcon(ide.ide);
+    const acceptanceRate = ide.totalGenerations > 0 
+      ? (ide.totalAcceptances / ide.totalGenerations * 100).toFixed(1)
+      : '0.0';
+    
+    return (
+      <>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 mr-3">
+              <IDEIcon />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-900">
+                {formatIDEName(ide.ide)}
+              </div>
+              <div className="text-sm text-gray-500">
+                {ide.ide}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+          {sortBy === 'users' ? ide.uniqueUsers.toLocaleString() : ide.totalEngagements.toLocaleString()}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          {ide.totalGenerations.toLocaleString()}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          {ide.totalAcceptances.toLocaleString()}
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locAdded.toLocaleString()}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locDeleted.toLocaleString()}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToAdd.toLocaleString()}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{ide.locSuggestedToDelete.toLocaleString()}</td>
+        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+          {acceptanceRate}%
+        </td>
+      </>
+    );
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -198,7 +165,6 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
       />
 
       <div className="space-y-8">
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <DashboardStatsCard
             value={totalIDEs}
@@ -251,11 +217,61 @@ export default function IDEView({ metrics, onBack }: IDEViewProps) {
           )}
         </div>
 
-        {/* IDEs by Number of Users */}
-        {renderIDETable(idesByUsers, 'IDEs Ordered by Number of Users', 'users')}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">IDEs Ordered by Number of Users</h3>
+          </div>
+          <DataTable
+            data={idesByUsers}
+            defaultSortField="uniqueUsers"
+            defaultSortDirection="desc"
+          >
+            <DataTableHeader>
+              <DataTableColumn<IDEStats> field="ide" sortable>IDE</DataTableColumn>
+              <DataTableColumn<IDEStats> field="uniqueUsers" sortable>Unique Users</DataTableColumn>
+              <DataTableColumn<IDEStats> field="totalGenerations" sortable>Generations</DataTableColumn>
+              <DataTableColumn<IDEStats> field="totalAcceptances" sortable>Acceptances</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locAdded" sortable>LOC Added</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locDeleted" sortable>LOC Deleted</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locSuggestedToAdd" sortable>Suggested Add</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locSuggestedToDelete" sortable>Suggested Delete</DataTableColumn>
+              <DataTableColumn>Acceptance Rate</DataTableColumn>
+            </DataTableHeader>
+            <DataTableBody<IDEStats>
+              rowClassName={(_, index) => index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+            >
+              {(ide) => renderIDERow(ide, 'users')}
+            </DataTableBody>
+          </DataTable>
+        </div>
 
-        {/* IDEs by Number of Engagements */}
-        {renderIDETable(idesByEngagements, 'IDEs Ordered by Number of Engagements', 'engagements')}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">IDEs Ordered by Number of Engagements</h3>
+          </div>
+          <DataTable
+            data={idesByEngagements}
+            defaultSortField="totalEngagements"
+            defaultSortDirection="desc"
+          >
+            <DataTableHeader>
+              <DataTableColumn<IDEStats> field="ide" sortable>IDE</DataTableColumn>
+              <DataTableColumn<IDEStats> field="totalEngagements" sortable>Total Engagements</DataTableColumn>
+              <DataTableColumn<IDEStats> field="totalGenerations" sortable>Generations</DataTableColumn>
+              <DataTableColumn<IDEStats> field="totalAcceptances" sortable>Acceptances</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locAdded" sortable>LOC Added</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locDeleted" sortable>LOC Deleted</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locSuggestedToAdd" sortable>Suggested Add</DataTableColumn>
+              <DataTableColumn<IDEStats> field="locSuggestedToDelete" sortable>Suggested Delete</DataTableColumn>
+              <DataTableColumn>Acceptance Rate</DataTableColumn>
+            </DataTableHeader>
+            <DataTableBody<IDEStats>
+              rowClassName={(_, index) => index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+            >
+              {(ide) => renderIDERow(ide, 'engagements')}
+            </DataTableBody>
+          </DataTable>
+        </div>
       </div>
     </div>
   );

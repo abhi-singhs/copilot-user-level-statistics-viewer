@@ -5,10 +5,11 @@ import { CopilotMetrics } from '../../types/metrics';
 import { translateFeature } from '../../utils/featureTranslations';
 import { formatIDEName } from '../../utils/ideIcons';
 import ExpandableTableSection from './ExpandableTableSection';
+import type { VoidCallback } from '../../types/events';
 
 interface DayDetailsModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: VoidCallback;
   date: string;
   dayMetrics?: CopilotMetrics;
 }

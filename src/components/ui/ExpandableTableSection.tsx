@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
+import type { ToggleCallback, VoidCallback } from '../../types/events';
 
 function cn(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(' ');
@@ -11,7 +12,7 @@ type LabelResolver = string | ((totalItems: number) => string);
 export interface ExpandableTableSectionRenderProps<T> {
   visibleItems: readonly T[];
   isExpanded: boolean;
-  toggle: () => void;
+  toggle: VoidCallback;
   totalItems: number;
 }
 
@@ -27,7 +28,7 @@ export interface ExpandableTableSectionProps<T> {
   buttonAlignment?: 'left' | 'center' | 'right';
   ariaLabel?: string;
   buttonTestId?: string;
-  onToggle?: (expanded: boolean) => void;
+  onToggle?: ToggleCallback;
 }
 
 const DEFAULT_BUTTON_CLASS =
