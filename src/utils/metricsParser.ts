@@ -1,6 +1,7 @@
 import { CopilotMetrics } from '../types/metrics';
+import { StringPool, internMetricStrings } from './stringPool';
 
-function validateAndParseLine(line: string): CopilotMetrics | null {
+function validateAndParseLine(line: string, pool?: StringPool): CopilotMetrics | null {
   try {
     const parsedUnknown = JSON.parse(line) as unknown;
     if (typeof parsedUnknown !== 'object' || parsedUnknown === null) {
@@ -35,7 +36,14 @@ function validateAndParseLine(line: string): CopilotMetrics | null {
     }
 
     // We rely on upstream schema conformity; at runtime we only soft-validated key fields
-    return parsedRaw as unknown as CopilotMetrics;
+    const metric = parsedRaw as unknown as CopilotMetrics;
+    
+    // Apply string interning if pool is provided
+    if (pool) {
+      internMetricStrings(metric, pool);
+    }
+    
+    return metric;
   } catch (error) {
     console.warn('Failed to parse line:', line, error);
     return null;
@@ -45,19 +53,24 @@ function validateAndParseLine(line: string): CopilotMetrics | null {
 export function parseMetricsFile(fileContent: string): CopilotMetrics[] {
   const lines = fileContent.split('\n').filter(line => line.trim());
   const metrics: CopilotMetrics[] = [];
+  const pool = new StringPool();
 
   for (const line of lines) {
-    const metric = validateAndParseLine(line);
+    const metric = validateAndParseLine(line, pool);
     if (metric) {
       metrics.push(metric);
     }
   }
+
+  // Pool can be cleared after parsing - interned strings in metrics remain valid
+  pool.clear();
 
   return metrics;
 }
 
 export async function parseMetricsStream(file: File, onProgress?: (count: number) => void): Promise<CopilotMetrics[]> {
   const metrics: CopilotMetrics[] = [];
+  const pool = new StringPool();
   const stream = file.stream();
   const reader = stream.getReader();
   const decoder = new TextDecoder('utf-8');
@@ -76,7 +89,7 @@ export async function parseMetricsStream(file: File, onProgress?: (count: number
 
       for (const line of lines) {
         if (!line.trim()) continue;
-        const metric = validateAndParseLine(line);
+        const metric = validateAndParseLine(line, pool);
         if (metric) {
           metrics.push(metric);
           processedCount++;
@@ -90,7 +103,7 @@ export async function parseMetricsStream(file: File, onProgress?: (count: number
 
     // Process remaining buffer
     if (buffer.trim()) {
-      const metric = validateAndParseLine(buffer);
+      const metric = validateAndParseLine(buffer, pool);
       if (metric) {
         metrics.push(metric);
         processedCount++;
@@ -101,6 +114,8 @@ export async function parseMetricsStream(file: File, onProgress?: (count: number
     }
   } finally {
     reader.releaseLock();
+    // Pool can be cleared after parsing - interned strings in metrics remain valid
+    pool.clear();
   }
 
   return metrics;
