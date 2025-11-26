@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { TooltipItem } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { registerChartJS } from '../../utils/chartSetup';
-import { createHorizontalBarChartOptions } from '../../utils/chartOptions';
-import { chartColors } from '../../utils/chartColors';
-import { FeatureAdoptionData } from '../../utils/metricCalculators';
+import { registerChartJS } from './utils/chartSetup';
+import { createHorizontalBarChartOptions } from './utils/chartOptions';
+import { chartColors } from './utils/chartColors';
+import { FeatureAdoptionData } from '../../domain/calculators/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
 import InsightsCard from '../ui/InsightsCard';

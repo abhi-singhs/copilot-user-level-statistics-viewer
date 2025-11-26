@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { CopilotMetrics } from '../../types/metrics';
-import { translateFeature } from '../../utils/featureTranslations';
-import { formatIDEName } from '../../utils/ideIcons';
+import { translateFeature } from '../../domain/featureTranslations';
+import { formatIDEName } from '../icons/IDEIcons';
 import ExpandableTableSection from './ExpandableTableSection';
 import type { VoidCallback } from '../../types/events';
 

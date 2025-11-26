@@ -2,13 +2,13 @@
 
 import { TooltipItem } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { registerChartJS } from '../../utils/chartSetup';
-import { createBaseChartOptions, yAxisFormatters } from '../../utils/chartOptions';
-import { createFilledLineDataset } from '../../utils/chartStyles';
-import { chartColors } from '../../utils/chartColors';
+import { registerChartJS } from './utils/chartSetup';
+import { createBaseChartOptions, yAxisFormatters } from './utils/chartOptions';
+import { createFilledLineDataset } from './utils/chartStyles';
+import { chartColors } from './utils/chartColors';
 import { formatShortDate } from '../../utils/formatters';
-import { calculateAverage, findMaxValue, findMinValue } from '../../utils/statsCalculators';
-import { DailyEngagementData } from '../../utils/metricCalculators';
+import { calculateAverage, findMaxValue, findMinValue } from '../../domain/calculators/statsCalculators';
+import { DailyEngagementData } from '../../domain/calculators/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 
 registerChartJS();

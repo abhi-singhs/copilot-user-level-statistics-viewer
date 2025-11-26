@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { CopilotMetrics, MetricsStats } from '../types/metrics';
 import { DateRangeFilter } from '../types/filters';
-import { aggregateMetrics } from '../utils/metricsAggregator';
+import { aggregateMetrics } from '../domain/metricsAggregator';
 import { getFilteredDateRange } from '../utils/dateFilters';
 
 export function useMetricsProcessing(

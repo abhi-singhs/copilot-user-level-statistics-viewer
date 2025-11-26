@@ -2,12 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import { CopilotMetrics } from '../types/metrics';
-import { translateFeature } from '../utils/featureTranslations';
-import { formatIDEName } from '../utils/ideIcons';
+import { translateFeature } from '../domain/featureTranslations';
+import { formatIDEName } from './icons/IDEIcons';
 import IDEActivityChart from './charts/IDEActivityChart';
 import ModeImpactChart from './charts/ModeImpactChart';
 import PRUCostAnalysisChart from './charts/PRUCostAnalysisChart';
-import { calculateDailyPRUAnalysis, calculateJoinedImpactData, calculateDailyModelUsage } from '../utils/metricCalculators';
+import { calculateDailyPRUAnalysis, calculateJoinedImpactData, calculateDailyModelUsage } from '../domain/calculators/metricCalculators';
 import { getModelMultiplier } from '../domain/modelConfig';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Filler, TooltipItem } from 'chart.js';
 import PRUModelUsageChart from './charts/PRUModelUsageChart';

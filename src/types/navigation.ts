@@ -12,7 +12,7 @@ import type {
   AgentImpactData,
   CodeCompletionImpactData,
   ModeImpactData,
-} from '../utils/metricCalculators';
+} from '../domain/calculators/metricCalculators';
 import type { DateRangeFilter } from './filters';
 import type { VoidCallback, ValueCallback, BooleanFilterCallback } from './events';
 

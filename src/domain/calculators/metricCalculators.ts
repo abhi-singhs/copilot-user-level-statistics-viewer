@@ -1,14 +1,14 @@
-import { calculateStatsFromMetrics } from '../domain/calculators/statsCalculator';
+import { calculateStatsFromMetrics } from './statsCalculator';
 import {
   calculateDailyPRUAnalysisFromMetrics,
   calculateDailyModelUsageFromMetrics,
-} from '../domain/calculators/modelUsageCalculator';
+} from './modelUsageCalculator';
 import {
   calculateJoinedImpactFromMetrics,
   calculateEditModeImpactFromMetrics,
   calculateInlineModeImpactFromMetrics,
   calculateAskModeImpactFromMetrics,
-} from '../domain/calculators/impactCalculator';
+} from './impactCalculator';
 
 export type {
   DailyEngagementData,
@@ -16,20 +16,20 @@ export type {
   DailyChatRequestsData,
   LanguageStats,
   FeatureAdoptionData,
-} from '../domain/calculators';
+} from './index';
 
 export type {
   DailyModelUsageData,
   DailyPRUAnalysisData,
   AgentModeHeatmapData,
   ModelFeatureDistributionData,
-} from '../domain/calculators/modelUsageCalculator';
+} from './modelUsageCalculator';
 
 export type {
   AgentImpactData,
   CodeCompletionImpactData,
   ModeImpactData,
-} from '../domain/calculators/impactCalculator';
+} from './impactCalculator';
 
 export const calculateStats = calculateStatsFromMetrics;
 

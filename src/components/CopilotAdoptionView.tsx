@@ -8,7 +8,7 @@ import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
 import InsightsCard from './ui/InsightsCard';
 import { usePluginVersions } from '../hooks/usePluginVersions';
-import type { FeatureAdoptionData, AgentModeHeatmapData } from '../utils/metricCalculators';
+import type { FeatureAdoptionData, AgentModeHeatmapData } from '../domain/calculators/metricCalculators';
 import type { MetricsStats, CopilotMetrics } from '../types/metrics';
 import type { VoidCallback } from '../types/events';
 

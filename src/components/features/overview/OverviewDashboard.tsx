@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MetricsStats } from '../../../types/metrics';
-import { DailyEngagementData, DailyChatUsersData, DailyChatRequestsData } from '../../../utils/metricCalculators';
+import { DailyEngagementData, DailyChatUsersData, DailyChatRequestsData } from '../../../domain/calculators/metricCalculators';
 import FilterPanel from '../../FilterPanel';
 import MetricTile from '../../ui/MetricTile';
 import EngagementChart from '../../charts/EngagementChart';

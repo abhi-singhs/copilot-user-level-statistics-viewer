@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { TooltipItem } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { registerChartJS } from '../../utils/chartSetup';
-import { createBaseChartOptions } from '../../utils/chartOptions';
-import { featureColors as baseFeatureColors } from '../../utils/chartColors';
-import { calculateTotal } from '../../utils/statsCalculators';
-import { ModelFeatureDistributionData } from '../../utils/metricCalculators';
+import { registerChartJS } from './utils/chartSetup';
+import { createBaseChartOptions } from './utils/chartOptions';
+import { featureColors as baseFeatureColors } from './utils/chartColors';
+import { calculateTotal } from '../../domain/calculators/statsCalculators';
+import { ModelFeatureDistributionData } from '../../domain/calculators/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
 import InsightsCard from '../ui/InsightsCard';

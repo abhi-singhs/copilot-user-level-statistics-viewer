@@ -1,5 +1,5 @@
 import { CopilotMetrics } from '../types/metrics';
-import { StringPool, internMetricStrings } from './stringPool';
+import { StringPool, internMetricStrings } from '../utils/stringPool';
 
 function validateAndParseLine(line: string, pool?: StringPool): CopilotMetrics | null {
   try {

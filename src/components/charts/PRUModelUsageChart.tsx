@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { TooltipItem } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
-import { registerChartJS } from '../../utils/chartSetup';
-import { createBaseChartOptions } from '../../utils/chartOptions';
+import { registerChartJS } from './utils/chartSetup';
+import { createBaseChartOptions } from './utils/chartOptions';
 import { formatShortDate } from '../../utils/formatters';
-import { calculateTotal, calculateAverage } from '../../utils/statsCalculators';
-import { chartColors } from '../../utils/chartColors';
-import { DailyModelUsageData } from '../../utils/metricCalculators';
+import { calculateTotal, calculateAverage } from '../../domain/calculators/statsCalculators';
+import { chartColors } from './utils/chartColors';
+import { DailyModelUsageData } from '../../domain/calculators/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
 import InsightsCard from '../ui/InsightsCard';

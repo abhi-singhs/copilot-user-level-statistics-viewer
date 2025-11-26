@@ -2,8 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import type { ChartOptions, TooltipItem } from 'chart.js';
-import { registerChartJS } from '../../utils/chartSetup';
-import { getIDEIcon, formatIDEName } from '../../utils/ideIcons';
+import { registerChartJS } from './utils/chartSetup';
+import { getIDEIcon, formatIDEName } from '../icons/IDEIcons';
 import { formatShortDate } from '../../utils/formatters';
 import ChartContainer from '../ui/ChartContainer';
 import type { CopilotMetrics } from '../../types/metrics';

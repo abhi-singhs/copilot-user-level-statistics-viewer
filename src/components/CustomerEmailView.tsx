@@ -6,7 +6,7 @@ import ModeImpactChart from './charts/ModeImpactChart';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
 import ModelsUsageChart from './charts/ModelsUsageChart';
 import type { CopilotMetrics } from '../types/metrics';
-import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
+import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../domain/calculators/metricCalculators';
 import { isPremiumModel } from '../domain/modelConfig';
 import type { VoidCallback } from '../types/events';
 

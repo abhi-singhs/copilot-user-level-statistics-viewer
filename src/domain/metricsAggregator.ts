@@ -1,6 +1,6 @@
 import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 import { DateRangeFilter } from '../types/filters';
-import { getFilteredDateRange } from './dateFilters';
+import { getFilteredDateRange } from '../utils/dateFilters';
 import {
   // Stats
   createStatsAccumulator,
@@ -57,7 +57,7 @@ import {
   computeInlineModeImpactData,
   computeAskModeImpactData,
   computeJoinedImpactData,
-} from '../domain/calculators';
+} from './calculators';
 
 export interface AggregatedMetrics {
   stats: MetricsStats;

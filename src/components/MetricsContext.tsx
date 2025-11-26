@@ -14,7 +14,7 @@ import {
   AgentImpactData,
   CodeCompletionImpactData,
   ModeImpactData
-} from '../utils/metricCalculators';
+} from '../domain/calculators/metricCalculators';
 import { CopilotMetrics, MetricsStats, UserSummary } from '../types/metrics';
 
 export interface FilteredMetricsData {

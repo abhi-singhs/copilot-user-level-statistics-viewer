@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { ChartData, ChartOptions } from 'chart.js';
-import { registerChartJS } from '../../utils/chartSetup';
-import { translateFeature } from '../../utils/featureTranslations';
+import { registerChartJS } from './utils/chartSetup';
+import { translateFeature } from '../../domain/featureTranslations';
 import ChartContainer from '../ui/ChartContainer';
 
 registerChartJS();

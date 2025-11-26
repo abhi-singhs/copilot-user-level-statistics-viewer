@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CopilotMetrics } from '../types/metrics';
-import { getIDEIcon, formatIDEName } from '../utils/ideIcons';
+import { getIDEIcon, formatIDEName } from './icons/IDEIcons';
 import SectionHeader from './ui/SectionHeader';
 import DashboardStatsCard from './ui/DashboardStatsCard';
 import {

@@ -2,8 +2,8 @@
 
 import { useCallback } from 'react';
 import { CopilotMetrics } from '../types/metrics';
-import { parseMetricsStream } from '../utils/metricsParser';
-import { calculateStats } from '../utils/metricCalculators';
+import { parseMetricsStream } from '../domain/metricsParser';
+import { calculateStats } from '../domain/calculators/metricCalculators';
 import { useRawMetrics } from '../components/MetricsContext';
 
 interface UseFileUploadReturn {

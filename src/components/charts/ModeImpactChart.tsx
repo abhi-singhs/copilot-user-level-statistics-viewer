@@ -2,11 +2,11 @@
 
 import { TooltipItem } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { registerChartJS } from '../../utils/chartSetup';
-import { createStackedBarChartOptions, yAxisFormatters } from '../../utils/chartOptions';
+import { registerChartJS } from './utils/chartSetup';
+import { createStackedBarChartOptions, yAxisFormatters } from './utils/chartOptions';
 import { formatShortDate } from '../../utils/formatters';
-import { calculateTotal, calculateAverage } from '../../utils/statsCalculators';
-import type { ModeImpactData } from '../../utils/metricCalculators';
+import { calculateTotal, calculateAverage } from '../../domain/calculators/statsCalculators';
+import type { ModeImpactData } from '../../domain/calculators/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 
 registerChartJS();

@@ -9,7 +9,7 @@ import type {
   DailyModelUsageData,
   DailyPRUAnalysisData,
   ModelFeatureDistributionData
-} from '../utils/metricCalculators';
+} from '../domain/calculators/metricCalculators';
 import type { VoidCallback } from '../types/events';
 
 interface PRUUsageAnalysisViewProps {

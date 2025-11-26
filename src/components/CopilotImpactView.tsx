@@ -3,7 +3,7 @@
 import React from 'react';
 import ModeImpactChart from './charts/ModeImpactChart';
 import SectionHeader from './ui/SectionHeader';
-import type { AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
+import type { AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../domain/calculators/metricCalculators';
 import type { VoidCallback } from '../types/events';
 
 interface CopilotImpactViewProps {
