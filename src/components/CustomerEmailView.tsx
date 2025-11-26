@@ -4,7 +4,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import SectionHeader from './ui/SectionHeader';
 import ModeImpactChart from './charts/ModeImpactChart';
 import FeatureAdoptionChart from './charts/FeatureAdoptionChart';
-import PremiumModelsUsageChart from './charts/PremiumModelsUsageChart';
+import ModelsUsageChart from './charts/ModelsUsageChart';
 import type { CopilotMetrics } from '../types/metrics';
 import type { FeatureAdoptionData, AgentImpactData, CodeCompletionImpactData, ModeImpactData } from '../utils/metricCalculators';
 import { isPremiumModel } from '../domain/modelConfig';
@@ -553,7 +553,7 @@ ${premiumModelsImage ? `
           </div>
           
           <div ref={premiumModelsChartRef}>
-            <PremiumModelsUsageChart metrics={metrics} />
+            <ModelsUsageChart metrics={metrics} variant="premium" />
           </div>
 
           {/* Email Closing */}
