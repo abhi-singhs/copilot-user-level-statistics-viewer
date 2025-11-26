@@ -4,6 +4,7 @@ import { Bar } from 'react-chartjs-2';
 import type { ChartOptions, TooltipItem } from 'chart.js';
 import { registerChartJS } from '../../utils/chartSetup';
 import { getIDEIcon, formatIDEName } from '../../utils/ideIcons';
+import { formatShortDate } from '../../utils/formatters';
 import ChartContainer from '../ui/ChartContainer';
 import type { CopilotMetrics } from '../../types/metrics';
 
@@ -118,7 +119,7 @@ export default function IDEActivityChart({
     }).filter(dataset => dataset.data.some(value => value > 0));
 
     return {
-      labels: allDays.map(day => new Date(day).toLocaleDateString()),
+      labels: allDays.map(day => formatShortDate(day)),
       datasets: datasets,
     };
   }, [userMetrics]);
@@ -218,7 +219,7 @@ export default function IDEActivityChart({
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{plugin.plugin}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{plugin.plugin_version}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{new Date(plugin.sampled_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatShortDate(plugin.sampled_at)}</td>
                   </tr>
                 ))}
               </tbody>

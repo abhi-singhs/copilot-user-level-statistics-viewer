@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { TooltipItem } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { registerChartJS } from '../../utils/chartSetup';
 import { createStackedBarChartOptions } from '../../utils/chartOptions';
+import { formatShortDate } from '../../utils/formatters';
 import { CopilotMetrics } from '../../types/metrics';
 import { KNOWN_MODELS } from '../../domain/modelConfig';
 import ChartContainer from '../ui/ChartContainer';
@@ -61,7 +62,7 @@ export default function ModelsUsageChart({ metrics, variant }: ModelsUsageChartP
     const totalInteractions = sortedModels.reduce((sum, m) => sum + (modelTotals[m] || 0), 0);
 
     return {
-      labels: sortedDates.map(d => new Date(d).toLocaleDateString()),
+      labels: sortedDates.map(d => formatShortDate(d)),
       datasets,
       totalInteractions,
       modelTotals,

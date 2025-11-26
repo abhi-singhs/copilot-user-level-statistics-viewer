@@ -7,6 +7,7 @@ import { registerChartJS } from '../../utils/chartSetup';
 import { createBaseChartOptions } from '../../utils/chartOptions';
 import { ModelFeatureDistributionData } from '../../utils/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
+import ChartToggleButtons from '../ui/ChartToggleButtons';
 import InsightsCard from '../ui/InsightsCard';
 
 registerChartJS();
@@ -16,6 +17,16 @@ interface ModelFeatureDistributionChartProps {
 }
 
 type ViewType = 'stacked' | 'grouped' | 'pie';
+
+const VIEW_TYPE_OPTIONS = [
+  { value: 'stacked' as const, label: 'Stacked' },
+  { value: 'grouped' as const, label: 'Grouped' },
+];
+
+const VIEW_TYPE_OPTIONS_WITH_PIE = [
+  ...VIEW_TYPE_OPTIONS,
+  { value: 'pie' as const, label: 'Pie' },
+];
 
 export default function ModelFeatureDistributionChart({ data }: ModelFeatureDistributionChartProps) {
   const [viewType, setViewType] = useState<ViewType>('stacked');
@@ -219,38 +230,11 @@ export default function ModelFeatureDistributionChart({ data }: ModelFeatureDist
           <option key={model.model} value={model.model}>{model.modelDisplayName}</option>
         ))}
       </select>
-      <button
-        onClick={() => setViewType('stacked')}
-        className={`px-3 py-1 text-sm rounded ${
-          viewType === 'stacked' 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-        }`}
-      >
-        Stacked
-      </button>
-      <button
-        onClick={() => setViewType('grouped')}
-        className={`px-3 py-1 text-sm rounded ${
-          viewType === 'grouped' 
-            ? 'bg-blue-600 text-white' 
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-        }`}
-      >
-        Grouped
-      </button>
-      {selectedModel !== 'all' && (
-        <button
-          onClick={() => setViewType('pie')}
-          className={`px-3 py-1 text-sm rounded ${
-            viewType === 'pie' 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Pie
-        </button>
-      )}
+      <ChartToggleButtons
+        options={selectedModel !== 'all' ? VIEW_TYPE_OPTIONS_WITH_PIE : VIEW_TYPE_OPTIONS}
+        value={viewType}
+        onChange={setViewType}
+      />
     </div>
   );
 

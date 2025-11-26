@@ -5,6 +5,7 @@ import { TooltipItem } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import { registerChartJS } from '../../utils/chartSetup';
 import { createBaseChartOptions } from '../../utils/chartOptions';
+import { formatShortDate } from '../../utils/formatters';
 import { DailyModelUsageData } from '../../utils/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
@@ -32,7 +33,7 @@ export default function PRUModelUsageChart({ data }: PRUModelUsageChartProps) {
   const grandTotal = totalPRURequests + totalStandardRequests + totalUnknownRequests;
 
   const chartData = {
-    labels: data.map(d => new Date(d.date).toLocaleDateString()),
+    labels: data.map(d => formatShortDate(d.date)),
     datasets: [
       {
         label: 'Premium Models (PRU)',

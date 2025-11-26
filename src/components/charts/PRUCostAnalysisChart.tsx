@@ -5,6 +5,7 @@ import { TooltipItem } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 import { registerChartJS } from '../../utils/chartSetup';
 import { createDualAxisChartOptions } from '../../utils/chartOptions';
+import { formatShortDate } from '../../utils/formatters';
 import { DailyPRUAnalysisData } from '../../utils/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
@@ -57,7 +58,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
     switch (viewType) {
       case 'cost':
         return {
-          labels: data.map(d => new Date(d.date).toLocaleDateString()),
+          labels: data.map(d => formatShortDate(d.date)),
           datasets: [
             {
               type: 'bar' as const,
@@ -83,7 +84,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         };
       case 'percentage':
         return {
-          labels: data.map(d => new Date(d.date).toLocaleDateString()),
+          labels: data.map(d => formatShortDate(d.date)),
           datasets: [
             {
               type: 'bar' as const,
@@ -118,7 +119,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         };
       case 'models':
         return {
-          labels: data.map(d => new Date(d.date).toLocaleDateString()),
+          labels: data.map(d => formatShortDate(d.date)),
           datasets: [
             {
               type: 'bar' as const,
@@ -206,7 +207,7 @@ export default function PRUCostAnalysisChart({ data }: PRUCostAnalysisChartProps
         { value: Math.round(totalPRUs * 100) / 100, label: 'Total PRUs', sublabel: `${data.length > 0 ? Math.round((totalPRUs / data.length) * 100) / 100 : 0}/day avg`, colorClass: 'text-purple-600' },
         { value: `$${Math.round(totalCost * 100) / 100}`, label: 'Service Value', sublabel: `$${data.length > 0 ? Math.round((totalCost / data.length) * 100) / 100 : 0}/day avg`, colorClass: 'text-green-600' },
         { value: `${Math.round(avgPRUPercentage * 100) / 100}%`, label: 'Avg PRU Usage', sublabel: `${totalPRURequests}/${totalRequests} requests`, colorClass: 'text-red-600' },
-        { value: `$${Math.round(maxCostDay.serviceValue * 100) / 100}`, label: 'Peak Service Value Day', sublabel: maxCostDay.date ? new Date(maxCostDay.date).toLocaleDateString() : 'N/A', colorClass: 'text-orange-600' },
+        { value: `$${Math.round(maxCostDay.serviceValue * 100) / 100}`, label: 'Peak Service Value Day', sublabel: maxCostDay.date ? formatShortDate(maxCostDay.date) : 'N/A', colorClass: 'text-orange-600' },
         { value: topModels.length, label: 'Premium Models', sublabel: 'Used in period', colorClass: 'text-blue-600' },
       ]}
       chartHeight="h-96"

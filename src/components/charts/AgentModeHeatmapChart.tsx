@@ -5,6 +5,7 @@ import { TooltipItem } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import { registerChartJS } from '../../utils/chartSetup';
 import { createBaseChartOptions, createDualAxisChartOptions } from '../../utils/chartOptions';
+import { formatShortDate } from '../../utils/formatters';
 import { AgentModeHeatmapData } from '../../utils/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 import ChartToggleButtons from '../ui/ChartToggleButtons';
@@ -46,7 +47,7 @@ export default function AgentModeHeatmapChart({ data }: AgentModeHeatmapChartPro
   const maxIntensity = data.length > 0 ? Math.max(...data.map(d => d.intensity)) : 0;
 
   const chartData = chartType === 'heatmap' ? {
-    labels: data.map(d => new Date(d.date).toLocaleDateString()),
+    labels: data.map(d => formatShortDate(d.date)),
     datasets: [{
       label: 'Agent Mode Requests',
       data: data.map(d => d.agentModeRequests),
@@ -55,7 +56,7 @@ export default function AgentModeHeatmapChart({ data }: AgentModeHeatmapChartPro
       borderWidth: 1
     }]
   } : {
-    labels: data.map(d => new Date(d.date).toLocaleDateString()),
+    labels: data.map(d => formatShortDate(d.date)),
     datasets: [
       {
         label: 'Agent Mode Requests',
@@ -127,7 +128,7 @@ export default function AgentModeHeatmapChart({ data }: AgentModeHeatmapChartPro
       summaryStats={[
         { value: totalRequests, label: 'Total Requests', sublabel: `${avgRequestsPerDay}/day avg`, colorClass: 'text-red-600' },
         { value: totalUserDays, label: 'User-Days', sublabel: 'Total user sessions', colorClass: 'text-blue-600' },
-        { value: peakDay.agentModeRequests, label: 'Peak Day', sublabel: peakDay.date ? new Date(peakDay.date).toLocaleDateString() : 'N/A', colorClass: 'text-green-600' },
+        { value: peakDay.agentModeRequests, label: 'Peak Day', sublabel: peakDay.date ? formatShortDate(peakDay.date) : 'N/A', colorClass: 'text-green-600' },
         { value: maxIntensity, label: 'Max Intensity', sublabel: 'Scale 1-5', colorClass: 'text-orange-600' },
       ]}
       chartHeight="h-96"
