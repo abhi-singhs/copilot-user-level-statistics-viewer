@@ -1,191 +1,67 @@
 'use client';
 
-import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  TooltipItem,
-} from 'chart.js';
+import { TooltipItem } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { registerChartJS } from '../../utils/chartSetup';
+import { createBaseChartOptions, yAxisFormatters } from '../../utils/chartOptions';
+import { createLineDataset } from '../../utils/chartStyles';
+import { chartColors } from '../../utils/chartColors';
+import { formatShortDate } from '../../utils/formatters';
+import { calculateAverage, findMaxValue } from '../../utils/statsCalculators';
 import { DailyChatUsersData } from '../../utils/metricCalculators';
 import ChartContainer from '../ui/ChartContainer';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+registerChartJS();
 
 interface ChatUsersChartProps {
   data: DailyChatUsersData[];
 }
 
 export default function ChatUsersChart({ data }: ChatUsersChartProps) {
-  const avgAskMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.askModeUsers, 0) / data.length) * 100) / 100
-    : 0;
+  const avgAskMode = calculateAverage(data, d => d.askModeUsers);
+  const avgAgentMode = calculateAverage(data, d => d.agentModeUsers);
+  const avgEditMode = calculateAverage(data, d => d.editModeUsers);
+  const avgInlineMode = calculateAverage(data, d => d.inlineModeUsers);
 
-  const avgAgentMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.agentModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const avgEditMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.editModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const avgInlineMode = data.length > 0 
-    ? Math.round((data.reduce((sum, d) => sum + d.inlineModeUsers, 0) / data.length) * 100) / 100
-    : 0;
-
-  const maxAskMode = data.length > 0 ? Math.max(...data.map(d => d.askModeUsers)) : 0;
-  const maxAgentMode = data.length > 0 ? Math.max(...data.map(d => d.agentModeUsers)) : 0;
-  const maxEditMode = data.length > 0 ? Math.max(...data.map(d => d.editModeUsers)) : 0;
-  const maxInlineMode = data.length > 0 ? Math.max(...data.map(d => d.inlineModeUsers)) : 0;
+  const maxAskMode = findMaxValue(data, d => d.askModeUsers);
+  const maxAgentMode = findMaxValue(data, d => d.agentModeUsers);
+  const maxEditMode = findMaxValue(data, d => d.editModeUsers);
+  const maxInlineMode = findMaxValue(data, d => d.inlineModeUsers);
 
   const chartData = {
-    labels: data.map(d => {
-      const date = new Date(d.date);
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }),
+    labels: data.map(d => formatShortDate(d.date)),
     datasets: [
-      {
-        label: 'Chat: Ask Mode',
-        data: data.map(d => d.askModeUsers),
-        borderColor: 'rgb(34, 197, 94)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.1,
-        pointBackgroundColor: 'rgb(34, 197, 94)',
-        pointBorderColor: 'white',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-      {
-        label: 'Chat: Agent Mode',
-        data: data.map(d => d.agentModeUsers),
-        borderColor: 'rgb(147, 51, 234)',
-        backgroundColor: 'rgba(147, 51, 234, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.1,
-        pointBackgroundColor: 'rgb(147, 51, 234)',
-        pointBorderColor: 'white',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-      {
-        label: 'Chat: Edit Mode',
-        data: data.map(d => d.editModeUsers),
-        borderColor: 'rgb(245, 158, 11)',
-        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.1,
-        pointBackgroundColor: 'rgb(245, 158, 11)',
-        pointBorderColor: 'white',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-      {
-        label: 'Chat: Inline Mode',
-        data: data.map(d => d.inlineModeUsers),
-        borderColor: 'rgb(239, 68, 68)',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.1,
-        pointBackgroundColor: 'rgb(239, 68, 68)',
-        pointBorderColor: 'white',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
+      createLineDataset(chartColors.green.solid, 'Chat: Ask Mode', data.map(d => d.askModeUsers)),
+      createLineDataset(chartColors.purple.solid, 'Chat: Agent Mode', data.map(d => d.agentModeUsers)),
+      createLineDataset(chartColors.amber.solid, 'Chat: Edit Mode', data.map(d => d.editModeUsers)),
+      createLineDataset(chartColors.red.solid, 'Chat: Inline Mode', data.map(d => d.inlineModeUsers)),
     ],
   };
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: false,
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: TooltipItem<'line'>) {
-            const value = context.parsed.y;
-            const datasetLabel = context.dataset.label;
-            
-            return `${datasetLabel}: ${value} users`;
-          },
-          afterBody: function(tooltipItems: TooltipItem<'line'>[]) {
-            if (tooltipItems.length > 0) {
-              const dataIndex = tooltipItems[0].dataIndex;
-              const dayData = data[dataIndex];
-              const totalChatUsers = Math.max(dayData.askModeUsers, dayData.agentModeUsers, dayData.editModeUsers, dayData.inlineModeUsers);
-              return [
-                '',
-                `Date: ${dayData.date}`,
-                `Peak chat users: ${totalChatUsers}`
-              ];
-            }
-            return [];
-          }
-        }
+  const options = createBaseChartOptions({
+    xAxisLabel: 'Date',
+    yAxisLabel: 'Number of Users',
+    yStepSize: 1,
+    yTicksCallback: yAxisFormatters.integer,
+    tooltipLabelCallback: (context: TooltipItem<'line' | 'bar'>) => {
+      const value = context.parsed.y;
+      const datasetLabel = context.dataset.label;
+      return `${datasetLabel}: ${value} users`;
+    },
+    tooltipAfterBodyCallback: (tooltipItems: TooltipItem<'line' | 'bar'>[]) => {
+      if (tooltipItems.length > 0) {
+        const dataIndex = tooltipItems[0].dataIndex;
+        const dayData = data[dataIndex];
+        const totalChatUsers = Math.max(dayData.askModeUsers, dayData.agentModeUsers, dayData.editModeUsers, dayData.inlineModeUsers);
+        return [
+          '',
+          `Date: ${dayData.date}`,
+          `Peak chat users: ${totalChatUsers}`
+        ];
       }
+      return [];
     },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Date',
-        },
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Number of Users',
-        },
-        beginAtZero: true,
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-        },
-        ticks: {
-          stepSize: 1,
-          callback: function(value: unknown) {
-            return Number(value);
-          }
-        }
-      },
-    },
-    interaction: {
-      intersect: false,
-      mode: 'index' as const,
-    },
-  };
+  });
 
   return (
     <ChartContainer

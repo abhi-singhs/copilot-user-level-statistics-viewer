@@ -302,54 +302,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
     }
   };
 
-  // Memoized bar chart data for IDE activity by day
-  const ideBarChartData = useMemo(() => {
-    const allIDEs = Array.from(
-      new Set(userMetrics.flatMap(metric => metric.totals_by_ide.map(ide => ide.ide)))
-    ).sort();
-
-    const allDays = userMetrics.map(metric => metric.day).sort();
-
-    const ideColors: Record<string, string> = {
-      'vscode': '#007ACC',
-      'visual_studio': '#5C2D91',
-      'jetbrains': '#FE315D',
-      'vim': '#019733',
-      'neovim': '#57A143',
-      'emacs': '#7F5AB6',
-      'eclipse': '#66595C',
-      'sublime_text': '#FF9800',
-      'xcode': '#1575F9',
-      'intellij': '#FE315D',
-    };
-
-    const fallbackColors = [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
-      '#F97316', '#06B6D4', '#84CC16', '#EC4899', '#14B8A6'
-    ];
-
-    const datasets = allIDEs.map((ide, index) => {
-      const data = allDays.map(day => {
-        const dayMetric = userMetrics.find(m => m.day === day);
-        const ideData = dayMetric?.totals_by_ide.find(i => i.ide === ide);
-        return ideData?.user_initiated_interaction_count || 0;
-      });
-
-      return {
-        label: formatIDEName(ide),
-        data: data,
-        backgroundColor: ideColors[ide] || fallbackColors[index % fallbackColors.length],
-        borderColor: ideColors[ide] || fallbackColors[index % fallbackColors.length],
-        borderWidth: 1,
-      };
-    }).filter(dataset => dataset.data.some(value => value > 0));
-
-    return {
-      labels: allDays.map(day => new Date(day).toLocaleDateString()),
-      datasets: datasets,
-    };
-  }, [userMetrics]);
-
   // Memoized bar chart data for language activity by day
   const languageBarChartData = useMemo(() => {
     const allLanguages = Array.from(
@@ -475,44 +427,6 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
       datasets: datasets,
     };
   }, [userMetrics]);
-
-  const barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: function(context: TooltipItem<'bar'>) {
-            const label = context.dataset.label || '';
-            const value = context.parsed.y || 0;
-            return `${label}: ${value.toLocaleString()} interactions`;
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Date'
-        }
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Interactions'
-        },
-        beginAtZero: true
-      }
-    }
-  };
 
   const languageBarChartOptions = {
     responsive: true,
@@ -663,9 +577,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
 
       {/* Totals by IDE */}
       <IDEActivityChart
-        ideAggregates={ideAggregates}
-        barChartData={ideBarChartData}
-        barChartOptions={barChartOptions}
+        userMetrics={userMetrics}
         pluginVersions={uniquePluginVersions}
       />
 

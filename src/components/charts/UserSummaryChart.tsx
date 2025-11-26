@@ -1,6 +1,11 @@
-import React from 'react';
+'use client';
+
 import { Pie } from 'react-chartjs-2';
 import { ChartData, ChartOptions } from 'chart.js';
+import { registerChartJS } from '../../utils/chartSetup';
+import ChartContainer from '../ui/ChartContainer';
+
+registerChartJS();
 
 interface UserSummaryChartProps {
   usedChat: boolean;
@@ -24,9 +29,7 @@ export default function UserSummaryChart({
   chartOptions
 }: UserSummaryChartProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">Summary</h3>
-
+    <ChartContainer title="Summary">
       {/* Features Used */}
       <div className="mb-6">
         <h4 className="text-md font-medium text-gray-800 mb-3">Features Used</h4>
@@ -81,6 +84,6 @@ export default function UserSummaryChart({
           </div>
         )}
       </div>
-    </div>
+    </ChartContainer>
   );
 }
