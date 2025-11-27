@@ -555,40 +555,28 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         />
       </div>
 
-      {/* Combined Impact Section */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <ModeImpactChart
+      <ModeImpactChart
         data={userCombinedImpactData}
         title="Combined Copilot Impact"
         description="Daily lines of code added and deleted across Code Completion, Ask Mode, Agent Mode, Edit Mode, and Inline Mode activities."
         emptyStateMessage="No combined impact data available."
+      />      
+
+      <ActivityCalendar userMetrics={userMetrics} onDayClick={handleDayClick} />
+
+      <UserSummaryChart
+        usedChat={usedChat}
+        usedAgent={usedAgent}
+        ideChartData={ideAggregates.length > 0 ? ideChartData : undefined}
+        languageChartData={Object.keys(languageGenerations).length > 0 ? languageChartData : undefined}
+        modelChartData={Object.keys(modelInteractions).length > 0 ? modelChartData : undefined}
+        chartOptions={chartOptions}
       />
-      </div>
 
-      {/* Activity Calendar Section */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <ActivityCalendar userMetrics={userMetrics} onDayClick={handleDayClick} />
-      </div>
-
-      {/* User Summary Section */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <UserSummaryChart
-          usedChat={usedChat}
-          usedAgent={usedAgent}
-          ideChartData={ideAggregates.length > 0 ? ideChartData : undefined}
-          languageChartData={Object.keys(languageGenerations).length > 0 ? languageChartData : undefined}
-          modelChartData={Object.keys(modelInteractions).length > 0 ? modelChartData : undefined}
-          chartOptions={chartOptions}
+      <IDEActivityChart
+        userMetrics={userMetrics}
+        pluginVersions={uniquePluginVersions}
         />
-      </div>
-
-      {/* Totals by IDE */}
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <IDEActivityChart
-          userMetrics={userMetrics}
-          pluginVersions={uniquePluginVersions}
-        />
-      </div>
 
       {/* Totals by Feature */}
       <div className="mt-8 pt-6 border-t border-gray-200">
@@ -625,29 +613,21 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
         </div>
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <UserActivityByLanguageAndFeatureChart
+      <UserActivityByLanguageAndFeatureChart
         languageFeatureAggregates={languageFeatureAggregates}
         languageBarChartData={languageBarChartData}
         languageBarChartOptions={languageBarChartOptions}
         />
-      </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <PRUCostAnalysisChart data={userPRUAnalysisData} />
-      </div>
+      <PRUCostAnalysisChart data={userPRUAnalysisData} />
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <PRUModelUsageChart data={userModelUsageData} />
-      </div>
+      <PRUModelUsageChart data={userModelUsageData} />
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
-        <UserActivityByModelAndFeatureChart
-          modelFeatureAggregates={modelFeatureAggregates}
-          modelBarChartData={modelBarChartData}
-          modelBarChartOptions={modelBarChartOptions}
-        />
-      </div>
+      <UserActivityByModelAndFeatureChart
+        modelFeatureAggregates={modelFeatureAggregates}
+        modelBarChartData={modelBarChartData}
+        modelBarChartOptions={modelBarChartOptions}
+      />
 
       <DayDetailsModal
         isOpen={modalState.isOpen}

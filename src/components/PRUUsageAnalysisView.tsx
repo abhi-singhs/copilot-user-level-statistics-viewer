@@ -34,17 +34,11 @@ export default function PRUUsageAnalysisView({
       }}
       contentClassName="space-y-12"
     >
-      <div>
-        <PRUModelUsageChart data={modelUsageData || []} />
-      </div>
+      <PRUModelUsageChart data={modelUsageData || []} />
 
-      <div className="pt-4">
-        <PRUCostAnalysisChart data={pruAnalysisData || []} />
-      </div>
+      <PRUCostAnalysisChart data={pruAnalysisData || []} />
 
-      <div className="pt-4">
-        <ModelFeatureDistributionChart data={modelFeatureDistributionData || []} />
-      </div>
+      <ModelFeatureDistributionChart data={modelFeatureDistributionData || []} />
     </ViewPanel>
   );
 }
