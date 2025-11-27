@@ -14,8 +14,8 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { CopilotMetrics } from '../types/metrics';
-import SectionHeader from './ui/SectionHeader';
 import ExpandableTableSection from './ui/ExpandableTableSection';
+import { ViewPanel } from './ui';
 import type { VoidCallback } from '../types/events';
 
 ChartJS.register(
@@ -254,15 +254,15 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <SectionHeader
-        title="Data Quality Analysis"
-        description="Agent Mode users without Agent Mode feature reporting - potential data quality issues"
-        onBack={onBack}
-        className="mb-6"
-        descriptionClassName="text-gray-600 text-sm mt-1"
-      />
-
+    <ViewPanel
+      headerProps={{
+        title: 'Data Quality Analysis',
+        description: 'Agent Mode users without Agent Mode feature reporting - potential data quality issues',
+        onBack,
+        descriptionClassName: 'text-gray-600 text-sm mt-1',
+      }}
+      contentClassName="space-y-6"
+    >
       <div className="mb-4">
         <div className="flex items-center space-x-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
@@ -503,6 +503,6 @@ export default function DataQualityAnalysisView({ metrics, onBack }: DataQuality
           <li>• These users may be using agent mode but it&apos;s not being properly tracked in the feature metrics</li>
         </ul>
       </div>
-    </div>
+    </ViewPanel>
   );
 }
