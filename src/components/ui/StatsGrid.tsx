@@ -12,9 +12,9 @@ const BREAKPOINT_CLASS_PREFIX: Record<string, string> = {
   "2xl": "2xl:",
 };
 
-const ALLOWED_COLUMNS = new Set([1, 2, 3, 4, 5, 6]);
+const ALLOWED_COLUMNS = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
-type ColumnCount = 1 | 2 | 3 | 4 | 5 | 6;
+type ColumnCount = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 export type StatsGridBreakpoint = keyof typeof BREAKPOINT_CLASS_PREFIX;
 

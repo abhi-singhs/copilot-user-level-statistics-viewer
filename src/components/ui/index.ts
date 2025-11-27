@@ -16,3 +16,6 @@ export type { MetricTileGroupProps } from "./MetricTileGroup";
 
 export { default as MetricTileIcon } from "./icons/MetricTileIcon";
 export type { MetricTileIconName } from "./icons/MetricTileIcon";
+
+export { default as DashboardStatsCardGroup } from "./DashboardStatsCardGroup";
+export type { DashboardStatsCardGroupProps } from "./DashboardStatsCardGroup";
