@@ -26,7 +26,6 @@ export const VIEW_MODES = {
   PRU_USAGE: 'pruUsage',
   COPILOT_ADOPTION: 'copilotAdoption',
   MODEL_DETAILS: 'modelDetails',
-  CUSTOMER_EMAIL: 'customerEmail',
 } as const;
 
 export type ViewMode = typeof VIEW_MODES[keyof typeof VIEW_MODES];
@@ -133,16 +132,6 @@ export interface ModelDetailsViewProps extends BackNavigableViewProps {
   view: typeof VIEW_MODES.MODEL_DETAILS;
 }
 
-export interface CustomerEmailViewProps extends BackNavigableViewProps {
-  view: typeof VIEW_MODES.CUSTOMER_EMAIL;
-  metrics: CopilotMetrics[];
-  featureAdoptionData: FeatureAdoptionData;
-  joinedImpactData: ModeImpactData[];
-  agentImpactData: AgentImpactData[];
-  codeCompletionImpactData: CodeCompletionImpactData[];
-  askModeImpactData: ModeImpactData[];
-}
-
 /**
  * Discriminated union of all view props.
  * Use this type when you need to pass props to a dynamic view router.
@@ -156,8 +145,7 @@ export type ViewProps =
   | CopilotImpactViewProps
   | PRUUsageViewProps
   | CopilotAdoptionViewProps
-  | ModelDetailsViewProps
-  | CustomerEmailViewProps;
+  | ModelDetailsViewProps;
 
 /**
  * Type guard to check if props are for a specific view

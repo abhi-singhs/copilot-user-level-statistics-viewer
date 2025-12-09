@@ -16,7 +16,6 @@ import UserDetailsView from '../UserDetailsView';
 import LanguagesView from '../LanguagesView';
 import IDEView from '../IDEView';
 import CopilotImpactView from '../CopilotImpactView';
-import CustomerEmailView from '../CustomerEmailView';
 import PRUUsageAnalysisView from '../PRUUsageAnalysisView';
 import CopilotAdoptionView from '../CopilotAdoptionView';
 import ModelDetailsView from '../ModelDetailsView';
@@ -125,19 +124,6 @@ const ViewRouter: React.FC = () => {
           inlineModeImpactData={inlineModeImpactData}
           askModeImpactData={askModeImpactData}
           joinedImpactData={joinedImpactData}
-          onBack={() => navigateTo(VIEW_MODES.OVERVIEW)}
-        />
-      );
-
-    case VIEW_MODES.CUSTOMER_EMAIL:
-      return (
-        <CustomerEmailView
-          metrics={filteredMetrics}
-          featureAdoptionData={featureAdoptionData}
-          joinedImpactData={joinedImpactData}
-          agentImpactData={agentImpactData}
-          codeCompletionImpactData={codeCompletionImpactData}
-          askModeImpactData={askModeImpactData}
           onBack={() => navigateTo(VIEW_MODES.OVERVIEW)}
         />
       );

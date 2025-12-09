@@ -182,14 +182,6 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           removeUnknownLanguages={removeUnknownLanguages}
           onRemoveUnknownLanguagesChange={onRemoveUnknownLanguagesChange}
         />
-        <div className="mt-4">
-          <button
-            onClick={() => onNavigate(VIEW_MODES.CUSTOMER_EMAIL)}
-            className="w-full px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition-colors"
-          >
-            Executive Summary Email
-          </button>
-        </div>
       </div>
     </div>
   );
