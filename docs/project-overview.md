@@ -141,7 +141,7 @@ All of these are defined in `src/utils/metricsParser.ts` and `src/types/metrics.
 
 ## 3. Architecture
 
-The project is a **Next.js 15 App Router** single-page application written in **TypeScript** with **Tailwind CSS** for styling. All rendering is client-side once the page is loaded.
+The project is a **Next.js 16 App Router** single-page application written in **TypeScript** with **Tailwind CSS** for styling. All rendering is client-side once the page is loaded.
 
 ### 3.1. High-Level Structure
 
