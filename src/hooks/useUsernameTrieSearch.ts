@@ -58,7 +58,7 @@ export function useUsernameTrieSearch(users: UserSummary[]): UseUsernameTrieSear
     };
   }, [searchQuery]);
 
-  const filteredUsers: UserSummary[] = useMemo(() => {
+  const getFilteredUsers = (): UserSummary[] => {
     if (!debouncedSearchQuery) {
       return users;
     }
@@ -72,7 +72,9 @@ export function useUsernameTrieSearch(users: UserSummary[]): UseUsernameTrieSear
     }
 
     return node.users;
-  }, [debouncedSearchQuery, trieRoot, users]);
+  };
+
+  const filteredUsers = getFilteredUsers();
 
   return {
     searchQuery,
