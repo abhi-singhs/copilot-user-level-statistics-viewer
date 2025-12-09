@@ -2,7 +2,7 @@
 
 A modern web application for visualizing GitHub Copilot usage metrics data. Upload your GitHub Copilot metrics JSON files to view comprehensive analytics about user engagement, feature usage, and adoption patterns across your organization.
 
-![GitHub Copilot Metrics Viewer](https://img.shields.io/badge/Next.js-15.4.7-black?logo=next.js&logoColor=white)
+![GitHub Copilot Metrics Viewer](https://img.shields.io/badge/Next.js-16.0.8-black?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-blue?logo=tailwindcss&logoColor=white)
 
@@ -14,13 +14,13 @@ A modern web application for visualizing GitHub Copilot usage metrics data. Uplo
 - **🔍 Individual User Details**: Drill down into specific user metrics and activity patterns
 - **🏢 IDE & Feature Breakdown**: View usage statistics by IDE, programming language, and Copilot features
 - **📱 Responsive Design**: Modern, mobile-friendly interface built with Tailwind CSS
-- **⚡ Fast Performance**: Built with Next.js 15 with Turbopack for optimal performance
+- **⚡ Fast Performance**: Built with Next.js 16 with Turbopack for optimal performance
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 20.9.0+ (required by Next.js 16)
 - npm, yarn, pnpm, or bun
 
 ### Installation
@@ -64,7 +64,7 @@ bun dev
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 15.4.5](https://nextjs.org) with App Router
+- **Framework**: [Next.js 16.0.8](https://nextjs.org) with App Router
 - **Language**: [TypeScript 5](https://www.typescriptlang.org)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com)
 - **Charts**: [Chart.js](https://www.chartjs.org) with [react-chartjs-2](https://react-chartjs-2.js.org)

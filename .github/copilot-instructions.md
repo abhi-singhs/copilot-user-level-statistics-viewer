@@ -1,7 +1,7 @@
 This workspace contains a Next.js TypeScript single page application.
 
 ## Tech Stack
-- **Framework**: Next.js 15.4.5 with App Router
+- **Framework**: Next.js 16.0.8 with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Linting**: ESLint
