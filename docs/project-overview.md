@@ -12,7 +12,6 @@ The application is a **single-page analytics dashboard** for exploring **GitHub 
 - Quickly understanding **adoption**, **engagement**, and **impact** of Copilot in their organization
 - Exploring data by **user**, **IDE**, **language**, **feature**, and **model**
 - Analyzing **Premium Request Unit (PRU)** consumption and estimated **service value**
-- Producing **customer-facing summaries** (e.g., email-ready reports)
 
 The app runs completely in the browser: users upload a metrics file, which is parsed client-side and never sent to a backend.
 
@@ -162,8 +161,6 @@ src/
 		CopilotAdoptionView.tsx      // Feature adoption summary
 		CopilotImpactView.tsx        // LOC impact analysis by mode
 		PRUUsageAnalysisView.tsx     // PRU + model usage analysis
-		DataQualityAnalysisView.tsx  // Data quality checks and hints
-		CustomerEmailView.tsx        // Generated customer-facing summary
 		ModelDetailsView.tsx         // Per-model details
 
 		layout/                      // Layout components
@@ -400,13 +397,12 @@ Navigation is managed by `NavigationContext` which maintains `currentView` state
 	- File upload prompt (when no data yet)
 	- Metric tiles (total records, unique users, top language/IDE/model, navigation tiles for Impact/PRU/Adoption)
 	- Time series charts (Engagement, Chat Users, Chat Requests)
-	- Side filter panel (date range, language filter) and quick links (Data Quality, Customer Email)
+	- Side filter panel (date range, language filter)
 
 - `users` – `UniqueUsersView` listing all users (`UserSummary`) and allowing click-through.
 - `userDetails` – `UserDetailsView` for a selected user (passed `CopilotMetrics[]` for that user).
 - `languages` – `LanguagesView` showing language statistics and charts.
 - `ides` – `IDEView` focusing on IDE-level usage.
-- `dataQuality` – `DataQualityAnalysisView` summarizing data health (e.g., unknown languages, missing IDs, etc.).
 - `copilotImpact` – `CopilotImpactView`, which renders multiple `ModeImpactChart` instances using the various LOC impact series.
 - `pruUsage` – `PRUUsageAnalysisView`, which combines:
 	- `PRUModelUsageChart` (from `DailyModelUsageData`)
@@ -414,7 +410,6 @@ Navigation is managed by `NavigationContext` which maintains `currentView` state
 	- `ModelFeatureDistributionChart` (from `ModelFeatureDistributionData`)
 - `copilotAdoption` – `CopilotAdoptionView` synthesizing feature adoption data and agent-mode heatmap.
 - `modelDetails` – `ModelDetailsView` for a selected `topModel`.
-- `customerEmail` – `CustomerEmailView`, generating an email-style summary based on the current filtered metrics.
 
 Navigation between these views is driven by buttons and tiles in the overview UI and side panel.
 
@@ -469,9 +464,7 @@ flowchart TB
 		CI[CopilotImpactView]
 		PR[PRUUsageAnalysisView]
 		CA[CopilotAdoptionView]
-		DQ[DataQualityAnalysisView]
 		MD[ModelDetailsView]
-		CE[CustomerEmailView]
 	end
 
 	VR --> OV
@@ -481,9 +474,7 @@ flowchart TB
 	VR --> CI
 	VR --> PR
 	VR --> CA
-	VR --> DQ
 	VR --> MD
-	VR --> CE
 
 	UFU --> MP
 	UMP --> MA
