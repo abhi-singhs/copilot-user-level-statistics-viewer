@@ -13,6 +13,8 @@ export interface PluginVersionsResult {
   error: string | null;
 }
 
+const basePath = process.env.NODE_ENV === 'production' ? '/copilot-user-level-statistics-viewer' : '';
+
 export function usePluginVersions(type: 'jetbrains' | 'vscode'): PluginVersionsResult {
   const [versions, setVersions] = useState<PluginVersion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -27,7 +29,7 @@ export function usePluginVersions(type: 'jetbrains' | 'vscode'): PluginVersionsR
         setError(null);
 
         const endpoint = type === 'jetbrains' ? '/data/jetbrains.json' : '/data/vscode.json';
-        const res = await fetch(endpoint, { cache: 'no-store' });
+        const res = await fetch(`${basePath}${endpoint}`, { cache: 'no-store' });
 
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
