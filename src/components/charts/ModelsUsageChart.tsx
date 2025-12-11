@@ -66,14 +66,17 @@ export default function ModelsUsageChart({ metrics, variant }: ModelsUsageChartP
       return `hsl(${hue}, 70%, 55%)`;
     };
 
-    const datasets = sortedModels.map((model) => ({
-      label: model,
-      data: sortedDates.map(d => map[d]?.[model] || 0),
-      backgroundColor: getModelColor(model),
-      borderColor: getModelColor(model),
-      borderWidth: 1,
-      stack: isPremium ? 'premium-models' : 'standard-models'
-    }));
+    const datasets = sortedModels.map((model) => {
+      const color = getModelColor(model);
+      return {
+        label: model,
+        data: sortedDates.map(d => map[d]?.[model] || 0),
+        backgroundColor: color,
+        borderColor: color,
+        borderWidth: 1,
+        stack: isPremium ? 'premium-models' : 'standard-models'
+      };
+    });
 
     const totalInteractions = sortedModels.reduce((sum, m) => sum + (modelTotals[m] || 0), 0);
 
