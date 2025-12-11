@@ -119,7 +119,7 @@ export default function PRUModelUsageChart({ data }: PRUModelUsageChartProps) {
                   href="https://github.com/orgs/community/discussions/177273#discussioncomment-15015810"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline font-medium hover:text-orange-900"
+                  className="underline font-medium"
                 >
                   GitHub Community discussion
                 </a>.
