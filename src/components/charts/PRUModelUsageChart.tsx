@@ -96,12 +96,37 @@ export default function PRUModelUsageChart({ data }: PRUModelUsageChartProps) {
       ]}
       chartHeight="h-96"
       footer={
-        <InsightsCard title="Model Types" variant="blue">
-          <p>
-            <strong>PRU Models:</strong> Premium models like Claude and Gemini that consume Premium Request Units (PRUs).{' '}
-            <strong className="ml-1">Standard Models:</strong> GPT-4.1 and GPT-4o included with paid plans at no additional cost.
-          </p>
-        </InsightsCard>
+        <div className="space-y-4">
+          <InsightsCard title="Model Types" variant="blue">
+            <p>
+              <strong>PRU Models:</strong> Premium models like Claude and Gemini that consume Premium Request Units (PRUs).{' '}
+              <strong className="ml-1">Standard Models:</strong> GPT-4.1 and GPT-4o included with paid plans at no additional cost.
+            </p>
+          </InsightsCard>
+
+          {totalUnknownRequests > 0 && (
+            <InsightsCard title="Unknown Requests Detected" variant="orange">
+              <p className="mb-2">
+                <strong>{totalUnknownRequests.toLocaleString()}</strong> requests are categorized as &quot;Unknown&quot;. This typically occurs due to:
+              </p>
+              <ul className="list-disc list-inside space-y-1 ml-2">
+                <li><strong>Outdated IDE plugins</strong> — older versions do not provide accurate telemetry. Check the Adoption Insights page for users with outdated plugins.</li>
+                <li><strong>Preview models</strong> — some recently released preview models were not mapped correctly in the telemetry data.</li>
+              </ul>
+              <p className="mt-2">
+                For more details, see the{' '}
+                <a
+                  href="https://github.com/orgs/community/discussions/177273#discussioncomment-15015810"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline font-medium hover:text-orange-900"
+                >
+                  GitHub Community discussion
+                </a>.
+              </p>
+            </InsightsCard>
+          )}
+        </div>
       }
     >
       <Chart type={chartType === 'area' ? 'line' : 'bar'} data={chartData} options={options} />
