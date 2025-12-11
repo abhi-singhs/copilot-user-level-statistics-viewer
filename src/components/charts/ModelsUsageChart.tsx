@@ -48,16 +48,35 @@ export default function ModelsUsageChart({ metrics, variant }: ModelsUsageChartP
     const sortedDates = Array.from(daySet).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     const sortedModels = Object.keys(modelTotals).sort((a, b) => (modelTotals[b] || 0) - (modelTotals[a] || 0));
 
-    const colors = sortedModels.map((_, i) => `hsl(${(i * (isPremium ? 45 : 55)) % 360},70%,55%)`);
+    const UNKNOWN_COLOR = 'hsl(0, 70%, 50%)';
+    const modelsWithoutUnknown = sortedModels.filter(m => m !== 'unknown');
+    const modelIndexMap = new Map(modelsWithoutUnknown.map((m, i) => [m, i]));
 
-    const datasets = sortedModels.map((model, idx) => ({
-      label: model,
-      data: sortedDates.map(d => map[d]?.[model] || 0),
-      backgroundColor: colors[idx],
-      borderColor: colors[idx],
-      borderWidth: 1,
-      stack: isPremium ? 'premium-models' : 'standard-models'
-    }));
+    const getModelColor = (model: string): string => {
+      if (model === 'unknown') {
+        return UNKNOWN_COLOR;
+      }
+      const adjustedIndex = modelIndexMap.get(model) ?? 0;
+      const hueStep = isPremium ? 45 : 55;
+      const startHue = 30;
+      const hue = (startHue + adjustedIndex * hueStep) % 360;
+      if (hue >= 350 || hue <= 10) {
+        return `hsl(${(hue + 50) % 360}, 70%, 55%)`;
+      }
+      return `hsl(${hue}, 70%, 55%)`;
+    };
+
+    const datasets = sortedModels.map((model) => {
+      const color = getModelColor(model);
+      return {
+        label: model,
+        data: sortedDates.map(d => map[d]?.[model] || 0),
+        backgroundColor: color,
+        borderColor: color,
+        borderWidth: 1,
+        stack: isPremium ? 'premium-models' : 'standard-models'
+      };
+    });
 
     const totalInteractions = sortedModels.reduce((sum, m) => sum + (modelTotals[m] || 0), 0);
 
