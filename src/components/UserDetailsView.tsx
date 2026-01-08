@@ -586,7 +586,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
             <ModeImpactChart
               data={userCompletionImpactData}
               title="Completions Impact"
-              description="Daily lines of code added and deleted when accepting Copilot code completions."
+              description="Daily lines of code added and deleted when developers accept Copilot code completions."
               emptyStateMessage="No code completion impact data available."
             />
           </div>
