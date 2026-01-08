@@ -573,7 +573,7 @@ export default function UserDetailsView({ userMetrics, userLogin, userId, onBack
           <div className="space-y-8 mt-6">
             <ModeImpactChart
               data={userAgentImpactData}
-              title="Agent Mode Impact"
+              title="Copilot Agent Mode Impact"
               description="Daily lines of code added and deleted through Copilot Agent Mode sessions."
               emptyStateMessage="No agent mode impact data available."
             />
